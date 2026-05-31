@@ -67,9 +67,9 @@
 
                                     <td th:text="${p.fabricante != null ? p.fabricante.fabNome : 'Sem fabricante'}"></td>
 
-                                    <td th:text="${#temporals.format(p.proDataFabricacao, 'dd/MM/yyyy')}"></td>
+                                    <td th:text="${p.proDataFabricacao != null ? #temporals.format(p.proDataFabricacao, 'dd/MM/yyyy') : '—'}"></td>
 
-                                    <td th:text="${#temporals.format(p.proDataVencimento, 'dd/MM/yyyy')}"></td>
+                                    <td th:text="${p.proDataVencimento != null ? #temporals.format(p.proDataVencimento, 'dd/MM/yyyy') : '—'}"></td>
 
                                     <td th:text="${p.proPeso} + ' kg'"></td>
 

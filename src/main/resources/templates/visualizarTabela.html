@@ -126,7 +126,7 @@
                 <span class="rn">Carboidratos (g)</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
-                <span class="rvd" th:text="${tne.tneVD > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
+                <span class="rvd" th:text="${tne.elemento.eleValorRecomendado > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
             </div>
         </th:block>
 
@@ -154,7 +154,7 @@
                 <span class="rn">Proteínas (g)</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
-                <span class="rvd" th:text="${tne.tneVD > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
+                <span class="rvd" th:text="${tne.elemento.eleValorRecomendado > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
             </div>
         </th:block>
 
@@ -164,7 +164,7 @@
                 <span class="rn">Gorduras Totais (g)</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
-                <span class="rvd" th:text="${tne.tneVD > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
+                <span class="rvd" th:text="${tne.elemento.eleValorRecomendado > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
             </div>
         </th:block>
 
@@ -174,7 +174,7 @@
                 <span class="rn">Gorduras Saturadas (g)</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
-                <span class="rvd" th:text="${tne.tneVD > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
+                <span class="rvd" th:text="${tne.elemento.eleValorRecomendado > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
             </div>
         </th:block>
 
@@ -192,7 +192,7 @@
                 <span class="rn">Fibra Alimentar (g)</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
                 <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
-                <span class="rvd" th:text="${tne.tneVD > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
+                <span class="rvd" th:text="${tne.elemento.eleValorRecomendado > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
             </div>
         </th:block>
 
@@ -202,11 +202,11 @@
                 <span class="rn">Sódio (mg)</span>
                 <span class="rv" th:text="${#numbers.formatInteger(T(java.lang.Math).round(tne.tneValorPadrao), 1)}">—</span>
                 <span class="rv" th:text="${#numbers.formatInteger(T(java.lang.Math).round(tne.tneValor), 1)}">—</span>
-                <span class="rvd" th:text="${tne.tneVD > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
+                <span class="rvd" th:text="${tne.elemento.eleValorRecomendado > 0} ? ${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%' : '**'">**</span>
             </div>
         </th:block>
 
-        <div th:if="${#lists.isEmpty(elementos)}" class="r-vazio">
+        <div th:if="${elementos == null or #lists.isEmpty(elementos)}" class="r-vazio">
             Nenhum nutriente cadastrado para esta tabela.
         </div>
 

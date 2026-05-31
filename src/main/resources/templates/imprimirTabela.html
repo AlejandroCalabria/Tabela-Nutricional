@@ -46,7 +46,7 @@
                                     <select name="produto">
                                         <option th:each="p : ${produtos}"
                                                 th:value="${p.proCodigo}"
-                                                th:text="${p.fabricanteNome + ' - ' + p.proNome}">
+                                                th:text="${(p.fabricante != null ? p.fabricante.fabNome : 'Sem fabricante') + ' - ' + p.proNome}">
                                         </option>
                                     </select>
                                 </td>

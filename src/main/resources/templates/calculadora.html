@@ -408,7 +408,7 @@
                                     <div class="r-porcao-linha1">
                                         <span>Porção de
                                             <input type="number" id="rv-porcao" class="rv-edit rv-edit-porcao"
-                                                   value="—" min="1" step="0.1"
+                                                   value="" min="1" step="0.1"
                                                    oninput="sincronizarPorcaoFormulario(); recalcularVDs()">
                                             <input type="text" id="rv-unidade" class="rv-edit"
                                                    style="width:30px;font-size:11px;text-align:left;" value="">
@@ -416,7 +416,7 @@
                                         <span class="r-total-porcoes">
                                             Porções por embalagem:
                                             <input type="number" id="rv-totalPorcoes" class="rv-edit rv-edit-totalp"
-                                                   value="—" min="1" step="1"
+                                                   value="" min="1" step="1"
                                                    oninput="sincronizarPorcoesFormulario()">
                                         </span>
                                     </div>
@@ -625,6 +625,7 @@
     <input type="hidden" name="porcao"              id="fs-porcao">
     <input type="hidden" name="totalPorcoes"        id="fs-totalPorcoes">
     <input type="hidden" name="totalColheres"       id="fs-totalColheres">
+    <input type="hidden" name="medidaCaseira"       id="fs-medidaCaseira">
     <input type="hidden" name="ingredientesJson"    id="fs-ingredientesJson">
 </form>
 
@@ -1069,6 +1070,7 @@ function salvar() {
     document.getElementById('fs-porcao').value           = document.getElementById('porcao').value;
     document.getElementById('fs-totalPorcoes').value     = document.getElementById('totalPorcoes').value;
     document.getElementById('fs-totalColheres').value    = 0;
+    document.getElementById('fs-medidaCaseira').value    = document.getElementById('medidaCaseira').value.trim();
     document.getElementById('fs-ingredientesJson').value = JSON.stringify(ingredientes);
 
     document.getElementById('form-salvar').submit();

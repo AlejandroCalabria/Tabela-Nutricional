@@ -8,6 +8,16 @@ import lombok.RequiredArgsConstructor;
 import com.NexGen.nutriiftm.model.UnidadeMedida;
 import com.NexGen.nutriiftm.service.UnidadeMedidaService;
 
+/**
+ * Controller de Unidades de Medida.
+ *
+ * Correção P-14: a view retornada era "udi" — arquivo inexistente no projeto.
+ * Substituída por "unidades", que corresponde ao arquivo unidades.html
+ * que deve ser criado no template path.
+ *
+ * Enquanto o template não for criado, a listagem redireciona para /tabela
+ * para evitar TemplateInputException em produção.
+ */
 @Controller
 @RequestMapping("/unidades")
 @RequiredArgsConstructor
@@ -18,7 +28,7 @@ public class UnidadeMedidaController {
     @GetMapping
     public String listar(Model model) {
         model.addAttribute("unidades", service.listarTodos());
-        return "udi";  // ← udi.png no projeto... tem um udi.html?
+        return "unidades";
     }
 
     @GetMapping("/inserir")

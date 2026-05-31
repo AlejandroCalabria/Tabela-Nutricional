@@ -12,9 +12,14 @@
                                     <a th:href="@{/produtos}">Gerenciamento de Produtos</a>
                                     <a th:href="@{/nutrientes}">Gerenciamento de Nutrientes</a>
                                     <a th:href="@{/tabela}">Tabelas Nutricionais</a>
-                                    <!-- CORRIGIDO: era /inserir/receita duplicado com /calculadora -->
                                     <a th:href="@{/calculadora}">Calculadora Nutricional (TACO)</a>
-                                    <a th:href="@{/tabela/imprimir}">Imprimir Rotulagem</a>
+                                    <!--
+                                        CORREÇÃO P-15: o link anterior apontava para /tabela/imprimir
+                                        sem o {id} obrigatório, resultando em 404 ou mapeamento errado.
+                                        Corrigido para /tabela — a impressão é acessada a partir da
+                                        linha da tabela (botão "Detalhes" ou "Rótulo").
+                                    -->
+                                    <a th:href="@{/tabela}">Gerenciar Rótulos</a>
                                     <a th:href="@{/sobre}" style="background-color: lightseagreen">Sobre</a>
                                 </p>
                             </div>

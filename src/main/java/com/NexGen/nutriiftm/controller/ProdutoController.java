@@ -1,4 +1,6 @@
 package com.NexGen.nutriiftm.controller;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -8,10 +10,21 @@ import com.NexGen.nutriiftm.service.FabricanteService;
 import com.NexGen.nutriiftm.service.ProdutoService;
 
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDate;
+
+/**
+ * CORREÇÃO BUG #11:
+ *   O binding automático de `name="fabricante"` com valor Long não funciona
+ *   para Produto.fabricante (objeto). O controller agora recebe fabricanteId
+ *   explicitamente e resolve o Fabricante via FabricanteService.
+ *
+ *   Formulários alterarProduto.html e inserirProduto.html devem usar:
+ *     <select name="fabricanteId"> (não "fabricante")
+ */
 @Controller
 @RequestMapping("/produtos")
 @RequiredArgsConstructor
-
 public class ProdutoController {
 
     private final ProdutoService produtoService;
@@ -37,8 +50,18 @@ public class ProdutoController {
         return "alterarProduto";
     }
 
+    /**
+     * Recebe fabricanteId como @RequestParam separado para binding correto.
+     * O objeto Produto é recebido sem o fabricante (Spring não resolve Long → Fabricante).
+     */
     @PostMapping("/salvar")
-    public String salvar(Produto produto) {
+    public String salvar(
+            Produto produto,
+            @RequestParam(required = false) Long fabricanteId
+    ) {
+        if (fabricanteId != null && fabricanteId > 0) {
+            produto.setFabricante(fabricanteService.buscarPorId(fabricanteId));
+        }
         produtoService.salvar(produto);
         return "redirect:/produtos";
     }

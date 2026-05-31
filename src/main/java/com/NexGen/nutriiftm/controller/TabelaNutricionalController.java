@@ -33,12 +33,7 @@ public class TabelaNutricionalController {
 
     @GetMapping
     public String listar(Model model) {
-
-        model.addAttribute(
-                "tabelas",
-                tabelaService.listarTodos()
-        );
-
+        model.addAttribute("tabelas", tabelaService.listarTodos());
         return "tabela";
     }
 
@@ -48,12 +43,7 @@ public class TabelaNutricionalController {
 
     @GetMapping("/nutrientes")
     public String nutrientes(Model model) {
-
-        model.addAttribute(
-                "elementos",
-                elementoService.listarTodos()
-        );
-
+        model.addAttribute("elementos", elementoService.listarTodos());
         return "nutrientes";
     }
 
@@ -63,30 +53,23 @@ public class TabelaNutricionalController {
 
     @GetMapping("/inserir")
     public String formInserir(Model model) {
-
-        model.addAttribute(
-                "tabela",
-                new TabelaNutricional()
-        );
-
-        model.addAttribute(
-                "produtos",
-                produtoService.listarTodos()
-        );
-
-        model.addAttribute(
-                "unidades",
-                unidadeService.listarTodos()
-        );
-
-        model.addAttribute(
-                "elementos",
-                elementoService.listarTodos()
-        );
-
+        model.addAttribute("tabela", new TabelaNutricional());
+        model.addAttribute("produtos", produtoService.listarTodos());
+        model.addAttribute("unidades", unidadeService.listarTodos());
+        model.addAttribute("elementos", elementoService.listarTodos());
         return "inserirTabela";
     }
 
+    /**
+     * Salva a TabelaNutricional (insert ou update).
+     *
+     * CORREÇÃO P-16: No fluxo de INSERT (tabCodigo ausente), redireciona para
+     * /nutrientes/valores/inserir/{id} em vez de /tabela. Isso orienta o usuário
+     * a adicionar os nutrientes imediatamente após criar a tabela, evitando
+     * rótulos vazios sem nenhuma instrução visível.
+     *
+     * No fluxo de UPDATE (tabCodigo presente), redireciona para /tabela como antes.
+     */
     @PostMapping("/salvar")
     public String salvar(
 
@@ -115,58 +98,27 @@ public class TabelaNutricionalController {
             @RequestParam(required = false)
             Double tabVD
     ) {
+        boolean isInsert = (tabCodigo == null);
 
-        // Se tabCodigo presente → atualizar; senão → criar novo
-        TabelaNutricional t = (tabCodigo != null)
-                ? tabelaService.buscarPorId(tabCodigo)
-                : new TabelaNutricional();
+        TabelaNutricional t = isInsert
+                ? new TabelaNutricional()
+                : tabelaService.buscarPorId(tabCodigo);
 
-        t.setProduto(
-                produtoService.buscarPorId(produtoId)
-        );
+        t.setProduto(produtoService.buscarPorId(produtoId));
+        t.setUnidadeMedida(unidadeService.buscarPorId(unidadeId));
+        t.setTabValorEnergetico(tabValorEnergetico != null ? tabValorEnergetico : 0.0);
+        t.setTabValorEnergeticoPorcao(tabValorEnergeticoPorcao != null ? tabValorEnergeticoPorcao : 0.0);
+        t.setTabPorcao(tabPorcao != null ? tabPorcao : 0.0);
+        t.setTabTotalPorcao(tabTotalPorcao != null ? tabTotalPorcao : 0.0);
+        t.setTabTotalColheres(tabTotalColheres != null ? tabTotalColheres : 0.0);
+        t.setTabVD(tabVD != null ? tabVD : 0.0);
 
-        t.setUnidadeMedida(
-                unidadeService.buscarPorId(unidadeId)
-        );
+        TabelaNutricional salva = tabelaService.salvar(t);
 
-        t.setTabValorEnergetico(
-                tabValorEnergetico != null
-                        ? tabValorEnergetico
-                        : 0.0
-        );
-
-        t.setTabValorEnergeticoPorcao(
-                tabValorEnergeticoPorcao != null
-                        ? tabValorEnergeticoPorcao
-                        : 0.0
-        );
-
-        t.setTabPorcao(
-                tabPorcao != null
-                        ? tabPorcao
-                        : 0.0
-        );
-
-        t.setTabTotalPorcao(
-                tabTotalPorcao != null
-                        ? tabTotalPorcao
-                        : 0.0
-        );
-
-        t.setTabTotalColheres(
-                tabTotalColheres != null
-                        ? tabTotalColheres
-                        : 0.0
-        );
-
-        t.setTabVD(
-                tabVD != null
-                        ? tabVD
-                        : 0.0
-        );
-
-        tabelaService.salvar(t);
-
+        if (isInsert) {
+            // Redireciona para inserção de nutrientes, orientando o usuário
+            return "redirect:/nutrientes/valores/inserir/" + salva.getTabCodigo();
+        }
         return "redirect:/tabela";
     }
 
@@ -175,31 +127,11 @@ public class TabelaNutricionalController {
     // =========================
 
     @GetMapping("/alterar/{id}")
-    public String formAlterar(
-            @PathVariable Long id,
-            Model model
-    ) {
-
-        model.addAttribute(
-                "tabela",
-                tabelaService.buscarPorId(id)
-        );
-
-        model.addAttribute(
-                "produtos",
-                produtoService.listarTodos()
-        );
-
-        model.addAttribute(
-                "unidades",
-                unidadeService.listarTodos()
-        );
-
-        model.addAttribute(
-                "elementos",
-                elementoService.listarTodos()
-        );
-
+    public String formAlterar(@PathVariable Long id, Model model) {
+        model.addAttribute("tabela", tabelaService.buscarPorId(id));
+        model.addAttribute("produtos", produtoService.listarTodos());
+        model.addAttribute("unidades", unidadeService.listarTodos());
+        model.addAttribute("elementos", elementoService.listarTodos());
         return "alterarTabela";
     }
 
@@ -208,26 +140,14 @@ public class TabelaNutricionalController {
     // =========================
 
     @GetMapping("/remover/{id}")
-    public String formRemover(
-            @PathVariable Long id,
-            Model model
-    ) {
-
-        model.addAttribute(
-                "tabela",
-                tabelaService.buscarPorId(id)
-        );
-
+    public String formRemover(@PathVariable Long id, Model model) {
+        model.addAttribute("tabela", tabelaService.buscarPorId(id));
         return "removerTabela";
     }
 
     @PostMapping("/remover/{id}")
-    public String remover(
-            @PathVariable Long id
-    ) {
-
+    public String remover(@PathVariable Long id) {
         tabelaService.deletar(id);
-
         return "redirect:/tabela";
     }
 
@@ -236,24 +156,10 @@ public class TabelaNutricionalController {
     // =========================
 
     @GetMapping("/visualizar/{id}")
-    public String visualizarRotulo(
-            @PathVariable Long id,
-            Model model
-    ) {
-
-        TabelaNutricional tabela =
-                tabelaService.buscarPorId(id);
-
-        model.addAttribute(
-                "tabela",
-                tabela
-        );
-
-        model.addAttribute(
-                "elementos",
-                tabela.getTneElementos()
-        );
-
+    public String visualizarRotulo(@PathVariable Long id, Model model) {
+        TabelaNutricional tabela = tabelaService.buscarPorId(id);
+        model.addAttribute("tabela", tabela);
+        model.addAttribute("elementos", tabela.getTneElementos());
         return "visualizarTabela";
     }
 
@@ -262,29 +168,11 @@ public class TabelaNutricionalController {
     // =========================
 
     @GetMapping("/imprimir/{id}")
-    public String imprimir(
-            @PathVariable Long id,
-            Model model
-    ) {
-
-        TabelaNutricional tabela =
-                tabelaService.buscarPorId(id);
-
-        model.addAttribute(
-                "tabela",
-                tabela
-        );
-
-        model.addAttribute(
-                "elementos",
-                tabela.getTneElementos()
-        );
-
-        model.addAttribute(
-                "unidade",
-                tabela.getUnidadeMedida()
-        );
-
+    public String imprimir(@PathVariable Long id, Model model) {
+        TabelaNutricional tabela = tabelaService.buscarPorId(id);
+        model.addAttribute("tabela", tabela);
+        model.addAttribute("elementos", tabela.getTneElementos());
+        model.addAttribute("unidade", tabela.getUnidadeMedida());
         return "imprimirTabela";
     }
 
@@ -293,30 +181,16 @@ public class TabelaNutricionalController {
     // =========================
 
     @GetMapping("/gerar-pdf/{id}")
-    public ResponseEntity<byte[]> gerarPdf(
-            @PathVariable Long id
-    ) {
-
+    public ResponseEntity<byte[]> gerarPdf(@PathVariable Long id) {
         try {
-
-            byte[] pdf =
-                    tabelaService.gerarPdf(id);
-
+            byte[] pdf = tabelaService.gerarPdf(id);
             return ResponseEntity.ok()
-                    .contentType(
-                            MediaType.APPLICATION_PDF
-                    )
-                    .header(
-                            HttpHeaders.CONTENT_DISPOSITION,
-                            "inline; filename=tabela_" + id + ".pdf"
-                    )
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "inline; filename=tabela_" + id + ".pdf")
                     .body(pdf);
-
         } catch (Exception e) {
-
-            return ResponseEntity
-                    .internalServerError()
-                    .build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

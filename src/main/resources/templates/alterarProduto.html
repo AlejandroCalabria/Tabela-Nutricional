@@ -1,126 +1,73 @@
+<!-- alterarProduto.html — select usa name="fabricanteId" -->
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>Alterar Produto</title>
-
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-
 <body class="main-layout">
-
 <div th:replace="~{menu :: menu}"></div>
-
 <div class="container mt-5">
-
     <h1>Alterar Produto</h1>
-
     <form th:action="@{/produtos/salvar}" method="post">
-
-        <!-- ID -->
-        <input type="hidden"
-               name="proCodigo"
-               th:value="${produto.proCodigo}">
-
+        <input type="hidden" name="proCodigo" th:value="${produto.proCodigo}">
         <div class="mb-3">
-            <label>Nome</label>
-
-            <input type="text"
-                   name="proNome"
-                   class="form-control"
-                   th:value="${produto.proNome}"
-                   required>
+            <label>Nome *</label>
+            <input type="text" name="proNome" class="form-control"
+                   th:value="${produto.proNome}" required>
         </div>
-
         <div class="mb-3">
             <label>Nome Fantasia</label>
-
-            <input type="text"
-                   name="proNomeFantasia"
-                   class="form-control"
+            <input type="text" name="proNomeFantasia" class="form-control"
                    th:value="${produto.proNomeFantasia}">
         </div>
-
         <div class="mb-3">
             <label>Fabricante</label>
-
-            <select name="fabricante"
-                    class="form-control">
-
+            <!--
+                CORREÇÃO BUG #11: era name="fabricante" (não faz binding para Fabricante).
+                Agora: name="fabricanteId". O controller resolve via fabricanteService.
+            -->
+            <select name="fabricanteId" class="form-control">
+                <option value="">Sem fabricante</option>
                 <option th:each="f : ${fabricantes}"
                         th:value="${f.fabCodigo}"
                         th:text="${f.fabNome}"
                         th:selected="${produto.fabricante != null and f.fabCodigo == produto.fabricante.fabCodigo}">
                 </option>
-
             </select>
         </div>
-
         <div class="mb-3">
             <label>Data de Fabricação</label>
-
-            <input type="date"
-                   name="proDataFabricacao"
-                   class="form-control"
+            <input type="date" name="proDataFabricacao" class="form-control"
                    th:value="${produto.proDataFabricacao}">
         </div>
-
         <div class="mb-3">
             <label>Data de Vencimento</label>
-
-            <input type="date"
-                   name="proDataVencimento"
-                   class="form-control"
+            <input type="date" name="proDataVencimento" class="form-control"
                    th:value="${produto.proDataVencimento}">
         </div>
-
         <div class="mb-3">
-            <label>Peso</label>
-
-            <input type="number"
-                   step="0.01"
-                   name="proPeso"
-                   class="form-control"
+            <label>Peso (g)</label>
+            <input type="number" step="0.01" name="proPeso" class="form-control"
                    th:value="${produto.proPeso}">
         </div>
-
         <div class="mb-3">
             <label>Ingredientes</label>
-
-            <textarea name="proIngredientes"
-                      class="form-control"
+            <textarea name="proIngredientes" class="form-control"
                       th:text="${produto.proIngredientes}"></textarea>
         </div>
-
         <div class="mb-3">
             <label>Recomendações</label>
-
-            <textarea name="proRecomendacoes"
-                      class="form-control"
+            <textarea name="proRecomendacoes" class="form-control"
                       th:text="${produto.proRecomendacoes}"></textarea>
         </div>
-
-        <button type="submit"
-                class="btn btn-primary">
-            Salvar Alterações
-        </button>
-
-        <a th:href="@{/produtos}"
-           class="btn btn-secondary">
-            Voltar
-        </a>
-
+        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        <a th:href="@{/produtos}" class="btn btn-secondary">Voltar</a>
     </form>
-
 </div>
-
-<footer class="mt-5">
-    <div th:replace="~{rodape :: rodape}"></div>
-</footer>
-
+<footer class="mt-5"><div th:replace="~{rodape :: rodape}"></div></footer>
 </body>
 </html>

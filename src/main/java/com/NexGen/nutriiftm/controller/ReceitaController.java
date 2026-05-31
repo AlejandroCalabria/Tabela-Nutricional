@@ -33,7 +33,7 @@ public class ReceitaController {
     @GetMapping("/resultado/{id}")
     public String resultado(@PathVariable Long id, Model model) {
         Receita receita = receitaService.buscarPorId(id);
-        ValoresNutricionais valores = receitaService.CalcularPreview(receita);
+        ValoresNutricionais valores = receitaService.calcularPreview(receita);
         model.addAttribute("receita", receita);
         model.addAttribute("valores", valores);
         return "salvarReceita";

@@ -31,7 +31,7 @@
                 <div class="box_text">
                     <h1>Gerenciamento de Cooperativa</h1>
 
-                    <form th:action="@{/inserirCooperativa}" method="post">
+                    <form th:action="@{/cooperativas/salvar}" method="post">
                         <table width="100%">
                             <tr>
                                 <th width="30%">Cooperativa</th>
@@ -42,11 +42,11 @@
                             </tr>
 
                             <tr>
-                                <td><input name="coo" type="text"></td>
-                                <td><input name="end" type="text"></td>
-                                <td><input name="cnpj" type="text"></td>
-                                <td><input name="cid" type="text"></td>
-                                <td><input type="submit" value="Inserir nova cooperativa"></td>
+                                <td><input name="cooNome" type="text" placeholder="Nome da cooperativa" required></td>
+                                <td><input name="cooEndereco" type="text" placeholder="Endereço"></td>
+                                <td><input name="cooCNPJ" type="text" placeholder="00.000.000/0001-00"></td>
+                                <td><input name="cooCidade" type="text" placeholder="Cidade"></td>
+                                <td><button type="submit" class="btn btn-success btn-sm">Inserir</button></td>
                             </tr>
                         </table>
                     </form>
@@ -83,9 +83,8 @@
                         <tr>
                             <td colspan="5">
                                 <div class="cooperative-actions">
-                                    <a th:href="@{/inserirCooperativa}" class="btn btn-secondary btn-sm">Nova Cooperativa</a>
-                                    <a th:href="@{/alterarCooperativa}" class="btn btn-secondary btn-sm">Editar Cooperativas</a>
-                                    <a th:href="@{/removerCooperativa}" class="btn btn-secondary-remove btn-sm">Remover Cooperativa</a>
+                                    <a th:href="@{/cooperativas/inserir}" class="btn btn-secondary btn-sm">Nova Cooperativa</a>
+                                    <a th:href="@{/cooperativas}" class="btn btn-secondary btn-sm">Gerenciar Cooperativas</a>
                                 </div>
                             </td>
                         </tr>

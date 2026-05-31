@@ -1,0 +1,211 @@
+<!--
+  fragments/rotulo.html
+  Fragmento compartilhado do rótulo ANVISA.
+  Uso:
+    <div th:replace="~{fragments/rotulo :: rotulo(tabela=${t}, elementos=${t.tneElementos})}"></div>
+
+  Parâmetros:
+    tabela    — TabelaNutricional
+    elementos — List<TabNutElemento> (pode ser tabela.tneElementos)
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="rotulo(tabela, elementos)">
+
+<div class="rotulo-wrapper">
+<div class="rotulo-anvisa">
+
+    <div class="r-titulo">Informação Nutricional</div>
+
+    <!-- Porção -->
+    <div class="r-porcao-bloco">
+        <div class="r-porcao-linha1">
+            <span>Porção de
+                <span class="r-porcao-valor"
+                      th:text="${tabela.tabPorcao != null ? #numbers.formatDecimal(tabela.tabPorcao, 1, 1) : '—'}">—</span>
+                <span th:if="${tabela.unidadeMedida != null}" th:text="${tabela.unidadeMedida.undNome}"></span>
+                <span th:if="${tabela.unidadeMedida == null}">g</span>
+            </span>
+            <span class="r-total-porcoes">
+                Porções por embalagem:
+                <strong th:text="${tabela.tabTotalPorcao != null ? #numbers.formatInteger(tabela.tabTotalPorcao.intValue(), 1) : '—'}">—</strong>
+            </span>
+        </div>
+        <div class="r-medida-caseira"
+             th:if="${tabela.tabTotalColheres != null and tabela.tabTotalColheres > 0}"
+             th:text="${#numbers.formatDecimal(tabela.tabTotalColheres, 1, 1)} + ' colher(es)/copo(s)'">
+        </div>
+    </div>
+
+    <div class="r-divisor-grosso"></div>
+
+    <!-- Cabeçalho de colunas -->
+    <div class="r-grid r-header">
+        <span></span>
+        <span>100 g</span>
+        <span th:text="${#numbers.formatDecimal(tabela.tabPorcao != null ? tabela.tabPorcao : 0, 1, 1)}
+                       + ' ' + (${tabela.unidadeMedida != null} ? ${tabela.unidadeMedida.undNome} : 'g')">Por porção</span>
+        <span>%VD*</span>
+    </div>
+
+    <!--
+        Energia — inteiro (IN 75/2020)
+        VD%     — inteiro; null → "**"
+        CORREÇÃO C3: condição é != null, não > 0 (zero é valor válido)
+    -->
+    <div class="r-grid r-energia">
+        <span class="rn">Valor Energético (kcal/kJ)</span>
+        <span class="rv">
+            <span th:text="${#numbers.formatInteger(T(java.lang.Math).round(tabela.tabValorEnergetico != null ? tabela.tabValorEnergetico : 0), 1)}">—</span> kcal
+            <span class="kj">
+                <span th:text="${#numbers.formatInteger(T(java.lang.Math).round((tabela.tabValorEnergetico != null ? tabela.tabValorEnergetico : 0) * 4.184), 1)}">—</span> kJ
+            </span>
+        </span>
+        <span class="rv">
+            <span th:text="${#numbers.formatInteger(T(java.lang.Math).round(tabela.tabValorEnergeticoPorcao != null ? tabela.tabValorEnergeticoPorcao : 0), 1)}">—</span> kcal
+            <span class="kj">
+                <span th:text="${#numbers.formatInteger(T(java.lang.Math).round((tabela.tabValorEnergeticoPorcao != null ? tabela.tabValorEnergeticoPorcao : 0) * 4.184), 1)}">—</span> kJ
+            </span>
+        </span>
+        <!--
+            CORREÇÃO C3: era "> 0" — zero é VD% válido (ex: produto sem energia).
+            Condição correta: != null.
+        -->
+        <span class="rvd"
+              th:text="${tabela.tabVD != null}
+                        ? (${#numbers.formatInteger(T(java.lang.Math).round(tabela.tabVD), 1)} + '%')
+                        : '**'">**</span>
+    </div>
+
+    <div class="r-divisor-medio"></div>
+
+    <!-- Carboidratos (eleCodigo=1) -->
+    <th:block th:each="tne : ${elementos}" th:if="${tne.elemento.eleCodigo == 1}">
+        <div class="r-grid r-nut">
+            <span class="rn">Carboidratos (g)</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
+            <!-- CORREÇÃO C1: era > 0, agora != null + vdBase > 0 via eleValorRecomendado -->
+            <span class="rvd"
+                  th:text="${tne.elemento.eleValorRecomendado > 0}
+                            ? (${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%')
+                            : '**'">**</span>
+        </div>
+    </th:block>
+
+    <!-- Açúcares Totais (eleCodigo=2) — %VD sempre ** conforme ANVISA -->
+    <th:block th:each="tne : ${elementos}" th:if="${tne.elemento.eleCodigo == 2}">
+        <div class="r-grid r-nut r-sub">
+            <span class="rn">Açúcares Totais (g)</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
+            <span class="rvd">**</span>
+        </div>
+    </th:block>
+
+    <!-- Açúcares Adicionados — N.D. fixo (não disponível na TBCA) -->
+    <div class="r-grid r-nut r-sub">
+        <span class="rn">Açúcares Adicionados (g)</span>
+        <span class="rv">N.D.</span>
+        <span class="rv">N.D.</span>
+        <span class="rvd">**</span>
+    </div>
+
+    <!-- Proteínas (eleCodigo=4) -->
+    <th:block th:each="tne : ${elementos}" th:if="${tne.elemento.eleCodigo == 4}">
+        <div class="r-grid r-nut">
+            <span class="rn">Proteínas (g)</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
+            <span class="rvd"
+                  th:text="${tne.elemento.eleValorRecomendado > 0}
+                            ? (${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%')
+                            : '**'">**</span>
+        </div>
+    </th:block>
+
+    <!-- Gorduras Totais (eleCodigo=5) -->
+    <th:block th:each="tne : ${elementos}" th:if="${tne.elemento.eleCodigo == 5}">
+        <div class="r-grid r-nut">
+            <span class="rn">Gorduras Totais (g)</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
+            <span class="rvd"
+                  th:text="${tne.elemento.eleValorRecomendado > 0}
+                            ? (${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%')
+                            : '**'">**</span>
+        </div>
+    </th:block>
+
+    <!-- Gorduras Saturadas (eleCodigo=6) -->
+    <th:block th:each="tne : ${elementos}" th:if="${tne.elemento.eleCodigo == 6}">
+        <div class="r-grid r-nut r-sub">
+            <span class="rn">Gorduras Saturadas (g)</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
+            <span class="rvd"
+                  th:text="${tne.elemento.eleValorRecomendado > 0}
+                            ? (${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%')
+                            : '**'">**</span>
+        </div>
+    </th:block>
+
+    <!-- Gorduras Trans — 0 / VD não estabelecido (sem dado TBCA) -->
+    <div class="r-grid r-nut r-sub">
+        <span class="rn">Gorduras Trans (g)</span>
+        <span class="rv">0</span>
+        <span class="rv">0</span>
+        <span class="r-trans-vd">VD não<br>estabel.</span>
+    </div>
+
+    <!-- Fibra Alimentar (eleCodigo=15) -->
+    <th:block th:each="tne : ${elementos}" th:if="${tne.elemento.eleCodigo == 15}">
+        <div class="r-grid r-nut">
+            <span class="rn">Fibra Alimentar (g)</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValorPadrao, 1, 1)}">—</span>
+            <span class="rv" th:text="${#numbers.formatDecimal(tne.tneValor, 1, 1)}">—</span>
+            <span class="rvd"
+                  th:text="${tne.elemento.eleValorRecomendado > 0}
+                            ? (${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%')
+                            : '**'">**</span>
+        </div>
+    </th:block>
+
+    <!--
+        Sódio (eleCodigo=16) — mg, exibir como INTEIRO.
+        CORREÇÃO I3: era formatDecimal → agora formatInteger.
+    -->
+    <th:block th:each="tne : ${elementos}" th:if="${tne.elemento.eleCodigo == 16}">
+        <div class="r-grid r-nut">
+            <span class="rn">Sódio (mg)</span>
+            <span class="rv"
+                  th:text="${#numbers.formatInteger(T(java.lang.Math).round(tne.tneValorPadrao), 1)}">—</span>
+            <span class="rv"
+                  th:text="${#numbers.formatInteger(T(java.lang.Math).round(tne.tneValor), 1)}">—</span>
+            <span class="rvd"
+                  th:text="${tne.elemento.eleValorRecomendado > 0}
+                            ? (${#numbers.formatInteger(T(java.lang.Math).round(tne.tneVD), 1)} + '%')
+                            : '**'">**</span>
+        </div>
+    </th:block>
+
+    <div th:if="${#lists.isEmpty(elementos)}" class="r-vazio">
+        Nenhum nutriente cadastrado.
+    </div>
+
+    <div class="r-rodape">
+        * Percentual de Valores Diários fornecidos pela porção.<br>
+        ** VD não estabelecido.<br>
+        N.D. Não disponível na base de dados utilizada (TBCA).<br>
+        Valores Diários de referência com base em uma dieta de 2000 kcal ou 8400 kJ.
+    </div>
+
+</div><!-- .rotulo-anvisa -->
+</div><!-- .rotulo-wrapper -->
+
+</th:block>
+
+</body>
+</html>

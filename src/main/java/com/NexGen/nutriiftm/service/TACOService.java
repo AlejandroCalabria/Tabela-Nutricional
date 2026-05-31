@@ -1,29 +1,81 @@
 package com.NexGen.nutriiftm.service;
 
 import com.NexGen.nutriiftm.model.ItemTACO;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * Adições ao TACOService original:
- *  - Mapa por código (HashMap) para lookup O(1) via buscarPorCodigo().
- *    Elimina a necessidade de repetir busca fuzzy em ReceitaService.calcularPreview().
- *  - Constante 4.184 removida — já está em NutricionalConstants.KCAL_TO_KJ.
- *    (O parser interno ainda usa o literal uma vez durante o load, aceitável.)
+ * Service de acesso à TBCA (Tabela Brasileira de Composição de Alimentos).
+ *
+ * Mudanças em relação à versão anterior:
+ *  - P-02/S-04: Parser JSON artesanal substituído por Jackson ObjectMapper.
+ *    Elimina ~250 linhas de código frágil e resolve problemas com
+ *    caracteres especiais, strings com vírgulas e campos ausentes.
+ *  - P-09: Falha no carregamento do TACO.json agora loga erro estruturado
+ *    via SLF4J (não System.err) e não propaga exceção (comportamento intencional
+ *    documentado em CB-01 dos contratos).
+ *  - Mapa por código mantido para lookup O(1) via buscarPorCodigo().
+ *  - Lógica de busca fuzzy preservada integralmente.
  */
+@Slf4j
 @Service
 public class TACOService {
 
-    private List<ItemTACO> itens = new ArrayList<>();
-    /** Lookup O(1) por código TBCA (String.valueOf(id)) */
-    private Map<String, ItemTACO> itensPorCodigo = new HashMap<>();
+    private final List<ItemTACO>         itens          = new ArrayList<>();
+    private final Map<String, ItemTACO>  itensPorCodigo = new HashMap<>();
+
+    /**
+     * DTO interno para desserialização Jackson do TACO.json.
+     * @JsonIgnoreProperties(ignoreUnknown = true) garante que campos extras
+     * no JSON não causem falha — apenas os campos mapeados são lidos.
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static class ItemTacoJson {
+        @JsonProperty("id")              private Integer id;
+        @JsonProperty("description")     private String  description;
+        @JsonProperty("category")        private String  category;
+        @JsonProperty("humidity_percents") private Double humidity;
+        @JsonProperty("energy_kcal")     private Double  energyKcal;
+        @JsonProperty("protein_g")       private Double  proteinG;
+        @JsonProperty("lipid_g")         private Double  lipidG;
+        @JsonProperty("cholesterol_mg")  private Double  cholesterolMg;
+        @JsonProperty("carbohydrate_g")  private Double  carbohydrateG;
+        @JsonProperty("fiber_g")         private Double  fiberG;
+        @JsonProperty("calcium_mg")      private Double  calciumMg;
+        @JsonProperty("sodium_mg")       private Double  sodiumMg;
+        @JsonProperty("magnesium_mg")    private Double  magnesiumMg;
+        @JsonProperty("manganese_mg")    private Double  manganeseMg;
+        @JsonProperty("phosphorus_mg")   private Double  phosphorusMg;
+        @JsonProperty("iron_mg")         private Double  ironMg;
+        @JsonProperty("potassium_mg")    private Double  potassiumMg;
+        @JsonProperty("copper_mg")       private Double  copperMg;
+        @JsonProperty("zinc_mg")         private Double  zincMg;
+        @JsonProperty("retinol_mcg")     private Double  retinolMcg;
+        @JsonProperty("thiamine_mg")     private Double  thiamineMg;
+        @JsonProperty("riboflavin_mg")   private Double  riboflavinMg;
+        @JsonProperty("pyridoxine_mg")   private Double  pyridoxineMg;
+        @JsonProperty("cobalamin_mcg")   private Double  cobalaminMcg;
+        @JsonProperty("vitaminC_mg")     private Double  vitaminCMg;
+        @JsonProperty("vitaminD_mcg")    private Double  vitaminDMcg;
+        @JsonProperty("vitaminE_mg")     private Double  vitaminEMg;
+        @JsonProperty("saturated_g")     private Double  saturatedG;
+        @JsonProperty("monounsaturated_g") private Double monounsaturatedG;
+        @JsonProperty("polyunsaturated_g") private Double polyunsaturatedG;
+        @JsonProperty("ash_g")           private Double  ashG;
+    }
 
     public TACOService() {
         carregarDados();
@@ -35,151 +87,125 @@ public class TACOService {
         return itensPorCodigo.get(codigo);
     }
 
+    /** Retorna todos os itens da TBCA. Nunca null — pode ser lista vazia. */
+    public List<ItemTACO> buscarTodos() {
+        return Collections.unmodifiableList(itens);
+    }
+
     private void carregarDados() {
-        String[] caminhos = { "/taco/TACO.json" };
+    String caminho = "/taco/TACO.json";
+    try (InputStream is = getClass().getResourceAsStream(caminho)) {
+        if (is == null) {
+            log.error("TACO.json não encontrado em classpath: {}", caminho);
+            return;
+        }
 
-        for (String caminho : caminhos) {
-            if (!itens.isEmpty()) break;
-            try {
-                InputStream is;
-                if (caminho.startsWith("/")) {
-                    is = getClass().getResourceAsStream(caminho);
-                    if (is == null) continue;
-                } else {
-                    File f = new File(caminho);
-                    if (!f.exists()) continue;
-                    is = new FileInputStream(f);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // Trata strings não numéricas ("NA", "Tr", "") como null → safe() converte para 0.0
+        mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
+        mapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
+
+        // Registrar módulo que aceita string → double com fallback null
+        mapper.registerModule(new com.fasterxml.jackson.databind.module.SimpleModule()
+            .addDeserializer(Double.class, new com.fasterxml.jackson.databind.deser.std.StdDeserializer<Double>(Double.class) {
+                @Override
+                public Double deserialize(com.fasterxml.jackson.core.JsonParser p,
+                                          com.fasterxml.jackson.databind.DeserializationContext ctx)
+                        throws java.io.IOException {
+                    String text = p.getText().trim();
+                    if (text.isEmpty() || text.equalsIgnoreCase("NA") || text.equalsIgnoreCase("Tr")) return null;
+                    try { return Double.parseDouble(text); }
+                    catch (NumberFormatException e) { return null; }
                 }
-                try (BufferedReader br = new BufferedReader(
-                        new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                    StringBuilder sb = new StringBuilder();
-                    String linha;
-                    while ((linha = br.readLine()) != null) sb.append(linha);
-                    itens = parsearJSON(sb.toString());
+            })
+        );
+
+        List<ItemTacoJson> jsonItems = mapper.readValue(is, new TypeReference<>() {});
+
+            for (ItemTacoJson j : jsonItems) {
+                if (j.getId() == null) continue;
+                ItemTACO item = converterParaItemTACO(j);
+                itens.add(item);
+                if (item.getCodigo() != null) {
+                    itensPorCodigo.put(item.getCodigo(), item);
                 }
-                // Construir mapa de lookup
-                for (ItemTACO item : itens) {
-                    if (item.getCodigo() != null) {
-                        itensPorCodigo.put(item.getCodigo(), item);
-                    }
-                }
-                System.out.println("TBCA carregado: " + itens.size() + " itens de " + caminho);
-            } catch (Exception e) {
-                System.err.println("Erro ao carregar TBCA de " + caminho + ": " + e.getMessage());
             }
+
+            log.info("TBCA carregada com sucesso: {} itens de {}", itens.size(), caminho);
+
+        } catch (Exception e) {
+            log.error("Erro ao carregar TBCA de {}. Calculadora ficará inoperante.", caminho, e);
         }
-        if (itens.isEmpty()) {
-            System.err.println("AVISO: TBCA não carregada. Lista vazia.");
-        }
     }
 
-    // ── Restante do código original preservado integralmente ─────────────────
+    /**
+     * Converte o DTO de desserialização para o modelo de domínio.
+     * Campos null (NA, Tr, ausentes) → 0.0 via safe().
+     */
+    private ItemTACO converterParaItemTACO(ItemTacoJson j) {
+        int id = j.getId();
+        double energiaKcal = safe(j.getEnergyKcal());
+        // kJ calculado a partir de kcal conforme NutricionalConstants
+        double energiaKj = Math.round(energiaKcal * 4.184 * 10.0) / 10.0;
 
-    private List<ItemTACO> parsearJSON(String json) {
-        List<ItemTACO> resultado = new ArrayList<>();
-        json = json.trim();
-        if (json.startsWith("[")) json = json.substring(1);
-        if (json.endsWith("]"))   json = json.substring(0, json.length() - 1);
-        int depth = 0, inicio = 0;
-        for (int i = 0; i < json.length(); i++) {
-            char c = json.charAt(i);
-            if (c == '{') { if (depth == 0) inicio = i; depth++; }
-            else if (c == '}') { depth--; if (depth == 0) resultado.add(parsearItem(json.substring(inicio, i + 1))); }
-        }
-        return resultado;
+        return new ItemTACO(
+                id,
+                String.valueOf(id),
+                j.getDescription(),
+                j.getCategory(),
+                safe(j.getHumidity()),
+                energiaKcal,
+                energiaKj,
+                safe(j.getProteinG()),
+                safe(j.getLipidG()),
+                safe(j.getCholesterolMg()),
+                safe(j.getCarbohydrateG()),
+                0.0,                        // acucarTotal — campo inexistente no TACO.json
+                safe(j.getFiberG()),
+                safe(j.getSodiumMg()),
+                safe(j.getCalciumMg()),
+                safe(j.getMagnesiumMg()),
+                safe(j.getManganeseMg()),
+                safe(j.getPhosphorusMg()),
+                safe(j.getIronMg()),
+                safe(j.getPotassiumMg()),
+                safe(j.getCopperMg()),
+                safe(j.getZincMg()),
+                safe(j.getRetinolMcg()),
+                safe(j.getThiamineMg()),
+                safe(j.getRiboflavinMg()),
+                safe(j.getPyridoxineMg()),
+                safe(j.getCobalaminMcg()),
+                safe(j.getVitaminCMg()),
+                safe(j.getVitaminDMcg()),
+                safe(j.getVitaminEMg()),
+                safe(j.getSaturatedG()),
+                safe(j.getMonounsaturatedG()),
+                safe(j.getPolyunsaturatedG()),
+                safe(j.getAshG())
+        );
     }
 
-    private double numVal(String valor) {
-        if (valor == null) return 0.0;
-        String v = valor.trim();
-        if (v.isEmpty() || v.equalsIgnoreCase("NA") || v.equalsIgnoreCase("Tr")) return 0.0;
-        if (v.startsWith("\"")) v = v.substring(1);
-        if (v.endsWith("\""))   v = v.substring(0, v.length() - 1);
-        try { return Double.parseDouble(v); } catch (NumberFormatException e) { return 0.0; }
+    /** Converte null → 0.0 e valores não-finitos → 0.0. */
+    private static double safe(Double value) {
+        if (value == null) return 0.0;
+        return Double.isFinite(value) ? value : 0.0;
     }
 
-    private ItemTACO parsearItem(String objStr) {
-        ItemTACO item = new ItemTACO();
-        objStr = objStr.trim();
-        if (objStr.startsWith("{")) objStr = objStr.substring(1);
-        if (objStr.endsWith("}"))   objStr = objStr.substring(0, objStr.length() - 1);
-        List<String> pares = splitChaves(objStr);
-        for (String par : pares) {
-            int colonIdx = par.indexOf(':');
-            if (colonIdx == -1) continue;
-            String chave  = limparString(par.substring(0, colonIdx));
-            String valor  = par.substring(colonIdx + 1).trim();
-            String strVal = limparString(valor);
-            double num    = numVal(valor);
-            switch (chave) {
-                case "id"             -> { item.setId((int)num); item.setCodigo(String.valueOf((int)num)); }
-                case "description"    -> item.setDescricao(strVal);
-                case "category"       -> item.setCategoria(strVal);
-                case "humidity_percents" -> item.setUmidade(num);
-                case "energy_kcal"    -> { item.setEnergia(num); item.setEnergiaKj(Math.round(num * 4.184 * 10.0) / 10.0); }
-                case "protein_g"      -> item.setProteina(num);
-                case "lipid_g"        -> item.setLipideos(num);
-                case "cholesterol_mg" -> item.setColesterol(num);
-                case "carbohydrate_g" -> item.setCarboidrato(num);
-                case "fiber_g"        -> item.setFibra(num);
-                case "calcium_mg"     -> item.setCalcio(num);
-                case "sodium_mg"      -> item.setSodio(num);
-                case "magnesium_mg"   -> item.setMagnesio(num);
-                case "manganese_mg"   -> item.setManganes(num);
-                case "phosphorus_mg"  -> item.setFosforo(num);
-                case "iron_mg"        -> item.setFerro(num);
-                case "potassium_mg"   -> item.setPotassio(num);
-                case "copper_mg"      -> item.setCobre(num);
-                case "zinc_mg"        -> item.setZinco(num);
-                case "retinol_mcg"    -> item.setRetinol(num);
-                case "thiamine_mg"    -> item.setVitamB1(num);
-                case "riboflavin_mg"  -> item.setVitamB2(num);
-                case "pyridoxine_mg"  -> item.setVitamB6(num);
-                case "cobalamin_mcg"  -> item.setVitamB12(num);
-                case "vitaminC_mg"    -> item.setVitamC(num);
-                case "vitaminD_mcg"   -> item.setVitamD(num);
-                case "vitaminE_mg"    -> item.setVitamE(num);
-                case "saturated_g"    -> item.setAcidoGraxoSaturado(num);
-                case "monounsaturated_g" -> item.setAcidoGraxoMonoinsaturado(num);
-                case "polyunsaturated_g" -> item.setAcidoGraxoPoliinsaturado(num);
-                case "ash_g"          -> item.setCinzas(num);
-            }
-        }
-        return item;
-    }
-
-    private List<String> splitChaves(String s) {
-        List<String> partes = new ArrayList<>();
-        int depth = 0; boolean inString = false, escaped = false; int inicio = 0;
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (escaped) { escaped = false; continue; }
-            if (c == '\\') { escaped = true; continue; }
-            if (c == '"') { inString = !inString; continue; }
-            if (inString) continue;
-            if (c == '{') depth++;
-            else if (c == '}') depth--;
-            else if (c == ',' && depth == 0) { partes.add(s.substring(inicio, i).trim()); inicio = i + 1; }
-        }
-        partes.add(s.substring(inicio).trim());
-        return partes;
-    }
-
-    private String limparString(String s) {
-        s = s.trim();
-        if (s.startsWith("\"") && s.endsWith("\"")) s = s.substring(1, s.length() - 1);
-        return s;
-    }
-
-    public List<ItemTACO> buscarTodos() { return itens; }
+    // ── Busca fuzzy — preservada integralmente ────────────────────────────────
 
     public ItemTACO buscarPorNome(String nomeBusca) {
         if (nomeBusca == null || nomeBusca.isBlank()) return null;
         String normalizado = normalizar(nomeBusca);
-        double melhorPontuacao = 0; ItemTACO melhor = null;
+        double melhorPontuacao = 0;
+        ItemTACO melhor = null;
         for (ItemTACO item : itens) {
             double p = similaridade(normalizado, normalizar(item.getDescricao()));
-            if (p > melhorPontuacao) { melhorPontuacao = p; melhor = item; }
+            if (p > melhorPontuacao) {
+                melhorPontuacao = p;
+                melhor = item;
+            }
         }
         return melhorPontuacao > 0.35 ? melhor : null;
     }
@@ -194,18 +220,23 @@ public class TACOService {
         }
         scored.sort((a, b) -> Double.compare(b[1], a[1]));
         List<ItemTACO> resultado = new ArrayList<>();
-        for (int i = 0; i < Math.min(scored.size(), maximo); i++) resultado.add(itens.get((int)scored.get(i)[0]));
+        for (int i = 0; i < Math.min(scored.size(), maximo); i++) {
+            resultado.add(itens.get((int) scored.get(i)[0]));
+        }
         return resultado;
     }
 
     private String normalizar(String texto) {
+        if (texto == null) return "";
         return texto.toLowerCase()
-            .replace("á","a").replace("ã","a").replace("ä","a").replace("à","a").replace("â","a")
-            .replace("é","e").replace("ê","e").replace("è","e")
-            .replace("í","i").replace("ó","o").replace("õ","o").replace("ö","o")
-            .replace("ò","o").replace("ô","o").replace("ú","u").replace("ü","u")
-            .replace("ç","c").replace("ñ","n").replace("-"," ").replace(","," ").replace("."," ")
-            .trim().replaceAll("\\s+"," ");
+                .replace("á", "a").replace("ã", "a").replace("ä", "a")
+                .replace("à", "a").replace("â", "a")
+                .replace("é", "e").replace("ê", "e").replace("è", "e")
+                .replace("í", "i").replace("ó", "o").replace("õ", "o")
+                .replace("ö", "o").replace("ò", "o").replace("ô", "o")
+                .replace("ú", "u").replace("ü", "u").replace("ç", "c")
+                .replace("ñ", "n").replace("-", " ").replace(",", " ")
+                .replace(".", " ").trim().replaceAll("\\s+", " ");
     }
 
     private double similaridade(String busca, String candidato) {
@@ -217,11 +248,13 @@ public class TACOService {
         int cobertos = 0;
         for (String tb : tokensBusca) if (setCand.contains(tb)) cobertos++;
         double cobertura = (double) cobertos / tokensBusca.length;
-        Set<String> uniao = new HashSet<>(setBusca); uniao.addAll(setCand);
-        Set<String> intersecao = new HashSet<>(setBusca); intersecao.retainAll(setCand);
+        Set<String> uniao = new HashSet<>(setBusca);
+        uniao.addAll(setCand);
+        Set<String> intersecao = new HashSet<>(setBusca);
+        intersecao.retainAll(setCand);
         double jaccard = uniao.isEmpty() ? 0 : (double) intersecao.size() / uniao.size();
-        String buscaSemEspaco = busca.replace(" ","");
-        String candSemEspaco  = candidato.replace(" ","");
+        String buscaSemEspaco = busca.replace(" ", "");
+        String candSemEspaco  = candidato.replace(" ", "");
         double substringBonus = 0;
         if (!buscaSemEspaco.isEmpty() && candSemEspaco.contains(buscaSemEspaco)) substringBonus = 0.3;
         else if (!candSemEspaco.isEmpty() && buscaSemEspaco.contains(candSemEspaco)) substringBonus = 0.2;

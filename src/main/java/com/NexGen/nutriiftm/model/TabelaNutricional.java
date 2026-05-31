@@ -31,6 +31,7 @@ public class TabelaNutricional {
     @Column(name = "tabValorenergeticoPorcao")
     private Double tabValorEnergeticoPorcao;
 
+    @Getter(lombok.AccessLevel.NONE)
     @Column(name = "tabPorcao")
     private Double tabPorcao;
 
@@ -45,6 +46,9 @@ public class TabelaNutricional {
 
     @Column(name = "tabPorcaoPadrao")
     private Double tabPorcaoPadrao;
+
+    @Column(name = "tabMedidaCaseira")
+    private String tabMedidaCaseira;
 
     @Column(name = "tabUnidadeMedidasColheres")
     private Double tabUnidadeMedidasColheres;

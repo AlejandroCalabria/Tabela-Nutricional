@@ -102,6 +102,7 @@ public class CalculadoraController {
             @RequestParam                   double  totalPorcoes,
             @RequestParam(required = false, defaultValue = "0") double totalColheres,
             @RequestParam                   String  ingredientesJson,
+            @RequestParam(required = false) String  medidaCaseira,
             Model model
     ) {
         // CORREÇÃO #10: Jackson em vez de regex caseiro
@@ -136,6 +137,9 @@ public class CalculadoraController {
         tabela.setTabPorcao(porcao);
         tabela.setTabTotalPorcao((double) porcoesSanitizado);
         tabela.setTabTotalColheres(totalColheres);
+        if (medidaCaseira != null && !medidaCaseira.isBlank()) {
+            tabela.setTabMedidaCaseira(medidaCaseira.trim());
+        }
         // CORREÇÃO #7: valores calculados pelo backend, não capturados do rótulo editável
         tabela.setTabValorEnergeticoPorcao((double) v.getEnergiaPorcaoKcal());
         tabela.setTabValorEnergetico((double) v.getEnergia100kcal());
@@ -155,6 +159,9 @@ public class CalculadoraController {
             double peso, String recomendacoes, String ingredientes) {
         if (produtoId != null && produtoId > 0) {
             return produtoService.buscarPorId(produtoId);
+        }
+        if (fabId == null || fabId <= 0) {
+            throw new IllegalArgumentException("Fabricante obrigatório para novo produto.");
         }
         Produto p = new Produto();
         p.setProNome(nome);
