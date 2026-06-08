@@ -1,110 +1,451 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-   <head>
-      <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Nutri - IFTM</title>
-      <link rel="stylesheet" href="css/bootstrap.min.css">
-      <link rel="stylesheet" href="css/style.css">
-      <link rel="stylesheet" href="css/responsive.css">
-      <link rel="stylesheet" href="css/jquery.mCustomScrollbar.min.css">
-      <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" media="screen">
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-   </head>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 
-   <body>
-    <div class="floating-elements">
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nutri IFTM — Rótulos Nutricionais</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+
+</head>
+
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
+
+    <nav class="navbar">
+      <a th:href="@{/}" href="/" class="nav-brand">
+        <img class="nav-brand-img" th:src="@{/images/logo.png}" src="images/logo.png" alt="Nutri IFTM logo">
+        <span class="nav-brand-name">Nutri <span>IFTM</span></span>
+      </a>
+      <div class="nav-links">
+        <a th:href="@{/}" href="/">Início</a>
+        <a th:href="@{#modulos}" href="#modulos">Módulos</a>
+        <a th:href="@{#historia}" href="#historia">História</a>
+        <a th:href="@{#modulos}" href="#modulos" class="nav-btn">Entrar</a>
+      </div>
+    </nav>
+
+    <div class="hero-body">
+      <div class="hero-badge">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M17 8C8 10 5.9 16.17 3.82 19.57c.99.49 2.13.43 3.05-.27C8 18.5 8.5 17 10 16c1.93-1.3 5-1.5 7-4 1.5-1.87 1.5-4 0-4z" />
+          <path d="M3.82 19.57C4.5 17 5.5 14 8 12" />
+        </svg>
+        <span class="hero-badge-text">Gestão Nutricional</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="line-plain">RÓTULOS</span>
+        <span class="line-plain">CONTAM</span>
+        <span class="line-green">HISTÓRIAS</span>
+      </h1>
+      <p class="hero-sub">
+        Sistema completo para gerenciamento de rótulos nutricionais de produtos
+        artesanais da agricultura familiar, em conformidade com as normas ANVISA.
+      </p>
+      <a th:href="@{#modulos}" href="#modulos" class="hero-cta">
+        conheça os módulos
+      </a>
+    </div>
+  </section>
+
+
+  <!-- MÓDULOS -->
+  <section class="section-modules" id="modulos">
+    <div class="section-header">
+      <div>
+        <div class="section-label">Módulos do sistema</div>
+        <h2 class="section-title">Tudo que você precisa,<br><em>pro seu agro-negócio</em></h2>
+      </div>
+      <p class="section-desc">
+        Gerencie produtores, produtos, nutrientes e gere tabelas nutricionais
+        conformes com a legislação brasileira.
+      </p>
     </div>
 
-    <div class="containerP">
-        <h1 class="titulo-principal">
-            SISTEMAS DE GERENCIAMENTO DE<br>
-            RÓTULOS NUTRICIONAIS DE PRODUTOS<br>
-            ARTESANAIS DA AGRICULTURA FAMILIAR
-        </h1>
+    <div class="cards-grid">
 
-        <div class="card-containerP">
-            <div class="card">
-                <div class="card-icon">
-                    <a href="/produtores"><i><img src="images/produtor.png" alt="#"></i></a>
-                </div>
-                <h3 class="card-title">Gerenciamento de<br>Produtores</h3>
-                <a href="/produtores"><div style="display:flex;justify-content:center;align-items:center" class="card-button">Acessar Módulo</div></a>
-            </div>
-
-            <div class="card">
-                <div class="card-icon">
-                    <a href="/produtos"><i><img src="images/produtos.png" alt="#"></i></a>
-                </div>
-                <h3 class="card-title">Gerenciamento de<br>Produtos</h3>
-                <a href="/produtos"><div style="display:flex;justify-content:center;align-items:center" class="card-button">Acessar Módulo</div></a>
-            </div>
-
-            <div class="card">
-                <div class="card-icon">
-                   <a href="/nutrientes"><i><img src="images/nutrientes.png" alt="#"/></i></a>
-                </div>
-                <h3 class="card-title">Gerenciamento de<br>Nutrientes</h3>
-                <a href="/nutrientes"><div style="display:flex;justify-content:center;align-items:center" class="card-button">Acessar Módulo</div></a>
-            </div>
-
-            <div class="card">
-                <div class="card-icon">
-                    <a href="/tabela"><i><img src="images/tabela.png" alt="#" class="tabela-icon"/></i></a>
-                </div>
-                <h3 class="card-title">Gerenciamento de<br>Tabelas Nutricionais</h3>
-                <a href="/tabela"><div style="display:flex;justify-content:center;align-items:center" class="card-button">Acessar Módulo</div></a>
-            </div>
-
-            <!-- CORRIGIDO: era href="inserir/receita" (relativo e errado) -->
-            <div class="card">
-                <div class="card-icon">
-                    <a href="/calculadora"><i><img src="images/nutrientes.png" alt="#"/></i></a>
-                </div>
-                <h3 class="card-title">Calculadora por<br>Receita (TACO)</h3>
-                <a href="/calculadora"><div style="display:flex;justify-content:center;align-items:center" class="card-button">Acessar Módulo</div></a>
-            </div>
+      <a th:href="@{/produtores}" href="/produtores" class="card">
+        <span class="card-num">01</span>
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
         </div>
+        <div class="card-title">Gerenciamento de Produtores</div>
+        <p class="card-desc">Cadastre e administre produtores rurais e suas cooperativas vinculadas ao sistema.</p>
+        <span class="card-link">
+          Acessar módulo
+          <svg viewBox="0 0 24 24" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </span>
+      </a>
+
+      <a th:href="@{/produtos}" href="/produtos" class="card">
+        <span class="card-num">02</span>
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <path d="M8 12h8M12 8v8" />
+          </svg>
+        </div>
+        <div class="card-title">Gerenciamento de Produtos</div>
+        <p class="card-desc">Registre e edite produtos artesanais com datas de fabricação, vencimento e peso.</p>
+        <span class="card-link">
+          Acessar módulo
+          <svg viewBox="0 0 24 24" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </span>
+      </a>
+
+      <a th:href="@{/nutrientes}" href="/nutrientes" class="card">
+        <span class="card-num">03</span>
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18" />
+          </svg>
+        </div>
+        <div class="card-title">Gerenciamento de Nutrientes</div>
+        <p class="card-desc">Defina nutrientes, valores recomendados e a ordem de exibição na tabela nutricional.</p>
+        <span class="card-link">
+          Acessar módulo
+          <svg viewBox="0 0 24 24" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </span>
+      </a>
+
+      <a th:href="@{/calculadora}" href="/calculadora" class="card card--highlight">
+        <span class="card-num">04</span>
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+            <rect x="9" y="3" width="6" height="4" rx="1" />
+            <path d="M9 12h6M9 16h4" />
+          </svg>
+        </div>
+        <div class="card-title">Calculadora por Receita (TACO)</div>
+        <p class="card-desc">Insira ingredientes e quantidades para gerar automaticamente a tabela nutricional
+          conforme a Tabela TACO e as normas ANVISA IN 75/2020.</p>
+        <span class="card-link">
+          Acessar módulo
+          <svg viewBox="0 0 24 24" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </span>
+      </a>
+
+      <a th:href="@{/tabela}" href="/tabela" class="card">
+        <span class="card-num">05</span>
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="9" y1="13" x2="15" y2="13" />
+            <line x1="9" y1="17" x2="13" y2="17" />
+          </svg>
+        </div>
+        <div class="card-title">Tabelas Nutricionais</div>
+        <p class="card-desc">Visualize e exporte rótulos nutricionais no padrão ANVISA em PDF.</p>
+        <span class="card-link">
+          Acessar módulo
+          <svg viewBox="0 0 24 24" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </span>
+      </a>
+
+    </div>
+  </section>
+
+
+  <!-- HISTÓRIA -->
+  <section class="section-historia" id="historia">
+
+    <img
+      class="historia-plant historia-plant--tl"
+      th:src="@{/images/planta_canto1.svg}"
+      src="images/planta_canto1.svg"
+      alt=""
+      aria-hidden="true"
+    >
+    <img
+      class="historia-plant historia-plant--br"
+      th:src="@{/images/planta_canto2.svg}"
+      src="images/planta_canto2.svg"
+      alt=""
+      aria-hidden="true"
+    >
+
+    <div class="historia-header">
+      <div class="historia-label">Nossa trajetória</div>
+      <h2 class="historia-title">Uma história que<br><em>mudará o campo</em></h2>
     </div>
 
-    <footer>
-        <div class="testimonial">
-            <div class="containerP">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div id="myCarousel" class="carousel slide testimonial_Carousel" data-ride="carousel">
-                            <div class="carousel-inner">
-                                <div class="carousel-item active">
-                                    <div class="containerP">
-                                        <div class="carousel-caption">
-                                            <div class="row">
-                                                <div class="col-md-15 margin_boot">
-                                                    <img src="images/udif.png" width="30%" alt="#"/>
-                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                    <img src="images/udi.png" width="30%" alt="#"/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <div class="tl-wrap" id="tlWrap">
 
-    <script src="js/jquery.min.js"></script>
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/jquery-3.0.0.min.js"></script>
-    <script src="js/jquery.mCustomScrollbar.concat.min.js"></script>
-    <script src="js/custom.js"></script>
-   </body>
+      <div class="tl-track" aria-hidden="true">
+        <div class="tl-fill" id="tlFill"></div>
+        <div class="tl-arrow" id="tlArrow"></div>
+      </div>
+
+      <!-- 2021 — esquerda -->
+      <div class="tl-row tl-left">
+        <div class="tl-card-col tl-side-left">
+          <div class="tl-card">
+            <span class="tl-year">2021</span>
+            <div class="tl-card-title">Origem da iniciativa</div>
+            <p class="tl-card-desc">Integração entre o IFTM e a Feirinha Solidária da UFU.</p>
+          </div>
+        </div>
+        <div class="tl-dot-col">
+          <div class="tl-dot"></div>
+        </div>
+        <div class="tl-spacer"></div>
+        <div class="tl-connector"></div>
+      </div>
+
+      <!-- 2023 — direita -->
+      <div class="tl-row tl-right">
+        <div class="tl-spacer"></div>
+        <div class="tl-dot-col">
+          <div class="tl-dot"></div>
+        </div>
+        <div class="tl-card-col tl-side-right">
+          <div class="tl-card">
+            <span class="tl-year">2023</span>
+            <div class="tl-card-title">Rotulagem Nutricional</div>
+            <p class="tl-card-desc">Produção dos primeiros rótulos para a agricultura familiar.</p>
+          </div>
+        </div>
+        <div class="tl-connector"></div>
+      </div>
+
+      <!-- 2024 — esquerda -->
+      <div class="tl-row tl-left">
+        <div class="tl-card-col tl-side-left">
+          <div class="tl-card">
+            <span class="tl-year">2024</span>
+            <div class="tl-card-title">Primeira versão</div>
+            <p class="tl-card-desc">Desenvolvimento inicial do sistema IFTM NUTRI.</p>
+          </div>
+        </div>
+        <div class="tl-dot-col">
+          <div class="tl-dot"></div>
+        </div>
+        <div class="tl-spacer"></div>
+        <div class="tl-connector"></div>
+      </div>
+
+      <!-- 2025 — direita -->
+      <div class="tl-row tl-right">
+        <div class="tl-spacer"></div>
+        <div class="tl-dot-col">
+          <div class="tl-dot"></div>
+        </div>
+        <div class="tl-card-col tl-side-right">
+          <div class="tl-card">
+            <span class="tl-year">2025</span>
+            <div class="tl-card-title">Automação</div>
+            <p class="tl-card-desc">Geração automatizada de tabelas e rótulos nutricionais.</p>
+          </div>
+        </div>
+        <div class="tl-connector"></div>
+      </div>
+
+      <!-- 2026 — esquerda -->
+      <div class="tl-row tl-left">
+        <div class="tl-card-col tl-side-left">
+          <div class="tl-card">
+            <span class="tl-year">2026</span>
+            <div class="tl-card-title">Expansão</div>
+            <p class="tl-card-desc">Desenvolvimento da segunda versão e ampliação do atendimento.</p>
+          </div>
+        </div>
+        <div class="tl-dot-col">
+          <div class="tl-dot"></div>
+        </div>
+        <div class="tl-spacer"></div>
+        <div class="tl-connector"></div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- STRIP — CREDENCIAIS -->
+  <div class="strip-wrapper">
+    <div class="strip">
+
+      <div class="strip-item">
+        <div class="strip-icon">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 3.138 3.138 3.42 3.42 0 0 0 .806 1.946 3.42 3.42 0 0 1 0 4.438 3.42 3.42 0 0 0-.806 1.946 3.42 3.42 0 0 1-3.138 3.138 3.42 3.42 0 0 0-1.946.806 3.42 3.42 0 0 1-4.438 0 3.42 3.42 0 0 0-1.946-.806 3.42 3.42 0 0 1-3.138-3.138 3.42 3.42 0 0 0-.806-1.946 3.42 3.42 0 0 1 0-4.438 3.42 3.42 0 0 0 .806-1.946 3.42 3.42 0 0 1 3.138-3.138z" />
+          </svg>
+        </div>
+        <div class="strip-text">
+          <strong>Conforme ANVISA</strong>
+          <span>RDC 429/2020 · IN 75/2020</span>
+        </div>
+      </div>
+      <div class="strip-divider"></div>
+
+      <div class="strip-item">
+        <div class="strip-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <div class="strip-text">
+          <strong>Dados protegidos</strong>
+          <span>Armazenamento seguro local</span>
+        </div>
+      </div>
+      <div class="strip-divider"></div>
+
+      <div class="strip-item">
+        <div class="strip-icon">
+          <svg viewBox="0 0 24 24">
+            <ellipse cx="12" cy="5" rx="9" ry="3" />
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+          </svg>
+        </div>
+        <div class="strip-text">
+          <strong>Tabela TACO</strong>
+          <span>4ª edição integrada</span>
+        </div>
+      </div>
+      <div class="strip-divider"></div>
+
+      <div class="strip-item">
+        <div class="strip-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
+        <div class="strip-text">
+          <strong>Agricultura Familiar</strong>
+          <span>Cooperativas e produtores</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">
+      <div class="footer-brand">
+        <img class="footer-brand-img" th:src="@{/images/logo.png}" src="images/logo.png" alt="Nutri IFTM">
+        <span class="footer-brand-name">Nutri <span>IFTM</span></span>
+      </div>
+      <div class="footer-copy">
+        © 2026 Nutri IFTM · Instituto Federal do Triângulo Mineiro<br>
+        Sistema de Gerenciamento de Rótulos Nutricionais
+      </div>
+    </div>
+    <div class="footer-right">
+      <div class="footer-logos">
+        <img th:src="@{/images/udif.png}" src="images/udif.png" alt="UDIF">
+        <img th:src="@{/images/udi.png}" src="images/udi.png" alt="UDI">
+      </div>
+      <span class="footer-tag">ANVISA · RDC 429/2020</span>
+    </div>
+  </footer>
+
+
+  <!-- SCRIPTS -->
+  <script>
+    /* ── Cards dos módulos ── */
+    const cards = document.querySelectorAll('.card');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    cards.forEach(c => io.observe(c));
+
+    /* ── Timeline da história ── */
+    (function () {
+      var section = document.getElementById('historia');
+      var fill = document.getElementById('tlFill');
+      var arrow = document.getElementById('tlArrow');
+      var rows = document.querySelectorAll('.tl-row');
+      var lineDrawn = false;
+
+      function positionArrow() {
+        var fillH = fill.offsetHeight;
+        arrow.style.top = fillH + 'px';
+        arrow.style.opacity = fillH > 10 ? '1' : '0';
+      }
+
+      function drawLine() {
+        if (lineDrawn) return;
+        lineDrawn = true;
+        var start = null;
+        var duration = 900;
+        function step(ts) {
+          if (!start) start = ts;
+          var progress = Math.min((ts - start) / duration, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          fill.style.height = (eased * 100) + '%';
+          positionArrow();
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            fill.style.height = '100%';
+            positionArrow();
+            activateRowObserver();
+          }
+        }
+        requestAnimationFrame(step);
+      }
+
+      var secObs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            setTimeout(drawLine, 600);
+            secObs.disconnect();
+          }
+        });
+      }, { threshold: 0.12 });
+      secObs.observe(section);
+
+      function activateRowObserver() {
+        var rowObs = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) {
+              e.target.classList.add('revealed');
+              rowObs.unobserve(e.target);
+            }
+          });
+        }, { threshold: 0.28 });
+        rows.forEach(function (r) { rowObs.observe(r); });
+      }
+    })();
+  </script>
+
+</body>
+
 </html>

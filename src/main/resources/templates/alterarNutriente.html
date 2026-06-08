@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Alterar Nutriente</title>
-
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/responsive.css}">
     <link rel="stylesheet" th:href="@{/css/jquery.mCustomScrollbar.min.css}">
-    <link rel="stylesheet"
-          href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
 </head>
-
 <body>
 
 <div th:replace="~{menu :: menu}"></div>
@@ -19,69 +16,84 @@
 <div class="container mt-5">
 
     <h1>Alterar Nutriente</h1>
+
     <div th:if="${erro}" class="alert alert-danger">
         <span th:text="${erro}"></span>
     </div>
-    <form th:action="@{/nutrientes/salvar}" method="post">
 
-        <input type="hidden"
-               name="eleCodigo"
-               th:value="${elemento.eleCodigo}">
+    <form th:action="@{/nutrientes/salvar}" method="post" class="needs-validation" novalidate>
+
+        <input type="hidden" name="eleCodigo" th:value="${elemento.eleCodigo}">
 
         <div class="mb-3">
-
-            <label>Nome do Nutriente</label>
-
+            <label class="form-label">Nome do Nutriente *</label>
             <input type="text"
                    name="eleNome"
                    class="form-control"
                    th:value="${elemento.eleNome}"
                    required>
-
+            <div class="invalid-feedback">
+                Por favor, informe o nome do nutriente.
+            </div>
         </div>
 
         <div class="mb-3">
-
-            <label>Ordem</label>
-
+            <label class="form-label">Ordem de Exibição no Rótulo *</label>
             <input type="number"
                    name="eleOrdem"
                    class="form-control"
+                   min="1"
                    th:value="${elemento.eleOrdem}"
                    required>
-
+            <div class="form-text">Define a posição deste nutriente na tabela do rótulo.</div>
+            <div class="invalid-feedback">
+                Por favor, informe a ordem de exibição (número inteiro maior que zero).
+            </div>
         </div>
 
         <div class="mb-3">
-
-            <label>Valor Diário Recomendado</label>
-
+            <label class="form-label">Valor Diário Recomendado *</label>
             <input type="number"
                    step="0.01"
                    name="eleValorRecomendado"
                    class="form-control"
+                   min="0"
                    th:value="${elemento.eleValorRecomendado}"
                    required>
-
+            <div class="form-text">Quantidade diária recomendada pela ANVISA (mg, g ou kcal conforme o nutriente).</div>
+            <div class="invalid-feedback">
+                Por favor, informe o valor diário recomendado.
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-warning">
-            Salvar Alterações
-        </button>
-
-        <a th:href="@{/nutrientes}" class="btn btn-secondary">
-            Voltar
-        </a>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-warning">Salvar Alterações</button>
+            <a th:href="@{/nutrientes}" class="btn btn-secondary ms-2">Voltar</a>
+        </div>
 
     </form>
-
 </div>
 
 <div th:replace="~{rodape :: rodape}"></div>
+
 <script th:src="@{/js/jquery.min.js}"></script>
 <script th:src="@{/js/popper.min.js}"></script>
 <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/js/jquery.mCustomScrollbar.concat.min.js}"></script>
 <script th:src="@{/js/custom.js}"></script>
+<script>
+(function () {
+    'use strict';
+    document.querySelectorAll('form.needs-validation').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
 </body>
 </html>

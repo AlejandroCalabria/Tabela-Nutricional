@@ -33,47 +33,46 @@ public class ElementoController {
         return "alterarNutriente";
     }
 
-@PostMapping("/salvar")
-public String salvar(Elemento elemento, Model model) {
+    @PostMapping("/salvar")
+    public String salvar(Elemento elemento, Model model) {
 
-    boolean ordemExiste;
+        boolean ordemExiste;
 
-    // ALTERAÇÃO
-    if (elemento.getEleCodigo() != null) {
-
-        ordemExiste = elementoService
-                .existeOrdemEmOutroElemento(
-                        elemento.getEleOrdem(),
-                        elemento.getEleCodigo()
-                );
-
-    } else {
-
-        // INSERÇÃO
-        ordemExiste = elementoService
-                .existeOrdem(elemento.getEleOrdem());
-    }
-
-    if (ordemExiste) {
-
-        model.addAttribute(
-                "erro",
-                "Já existe um nutriente com essa ordem."
-        );
-
-        model.addAttribute("elemento", elemento);
-
+        // ALTERAÇÃO
         if (elemento.getEleCodigo() != null) {
-            return "alterarNutriente";
+
+            ordemExiste = elementoService
+                    .existeOrdemEmOutroElemento(
+                            elemento.getEleOrdem(),
+                            elemento.getEleCodigo());
+
+        } else {
+
+            // INSERÇÃO
+            ordemExiste = elementoService
+                    .existeOrdem(elemento.getEleOrdem());
         }
 
-        return "inserirNutriente";
+        if (ordemExiste) {
+
+            model.addAttribute(
+                    "erro",
+                    "Já existe um nutriente com essa ordem.");
+
+            model.addAttribute("elemento", elemento);
+
+            if (elemento.getEleCodigo() != null) {
+                return "alterarNutriente";
+            }
+
+            return "inserirNutriente";
+        }
+
+        elementoService.salvar(elemento);
+
+        return "redirect:/nutrientes";
     }
 
-    elementoService.salvar(elemento);
-
-    return "redirect:/nutrientes";
-}
     @GetMapping("/remover/{id}")
     public String formRemover(@PathVariable Long id, Model model) {
         model.addAttribute("elemento", elementoService.buscarPorId(id));

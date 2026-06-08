@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
     <title>Alterar Tabela</title>
-
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
 </head>
-
 <body>
 
 <div th:replace="~{menu :: menu}"></div>
@@ -16,124 +13,122 @@
 
     <h1>Alterar Tabela Nutricional</h1>
 
-    <form th:action="@{/tabela/salvar}" method="post">
+    <form th:action="@{/tabela/salvar}" method="post" class="needs-validation" novalidate>
 
-        <input type="hidden"
-               name="tabCodigo"
-               th:value="${tabela.tabCodigo}">
+        <input type="hidden" name="tabCodigo" th:value="${tabela.tabCodigo}">
 
         <div class="mb-3">
-
-            <label>Produto</label>
-
-            <select name="produtoId"
-                    class="form-control"
-                    required>
-
+            <label class="form-label">Produto *</label>
+            <select name="produtoId" class="form-control" required>
                 <option th:each="p : ${produtos}"
                         th:value="${p.proCodigo}"
                         th:text="${p.proNome}"
                         th:selected="${p.proCodigo == tabela.produto.proCodigo}">
                 </option>
-
             </select>
-
+            <div class="invalid-feedback">
+                Por favor, selecione o produto para esta tabela nutricional.
+            </div>
         </div>
 
         <div class="mb-3">
-
-            <label>Valor Energético (kcal/100g)</label>
-
+            <label class="form-label">Valor Energético por 100g (kcal) *</label>
             <input type="number"
                    step="0.01"
                    name="tabValorEnergetico"
                    class="form-control"
+                   min="0"
                    th:value="${tabela.tabValorEnergetico}"
                    required>
-
+            <div class="invalid-feedback">
+                Por favor, informe o valor energético por 100g.
+            </div>
         </div>
 
         <div class="mb-3">
-
-            <label>Valor Energético por Porção (kcal)</label>
-
+            <label class="form-label">Valor Energético por Porção (kcal)</label>
             <input type="number"
                    step="0.01"
                    name="tabValorEnergeticoPorcao"
                    class="form-control"
+                   min="0"
                    th:value="${tabela.tabValorEnergeticoPorcao}">
-
         </div>
 
         <div class="mb-3">
-
-            <label>Porção</label>
-
+            <label class="form-label">Tamanho da Porção (g ou ml) *</label>
             <input type="number"
                    step="0.01"
                    name="tabPorcao"
                    class="form-control"
+                   min="0.1"
                    th:value="${tabela.tabPorcao}"
                    required>
-
+            <div class="form-text">Quantidade em gramas ou mililitros que representa uma porção do produto.</div>
+            <div class="invalid-feedback">
+                Por favor, informe o tamanho da porção (deve ser maior que zero).
+            </div>
         </div>
 
         <div class="mb-3">
-
-            <label>Total de Porções na Embalagem</label>
-
+            <label class="form-label">Total de Porções na Embalagem</label>
             <input type="number"
                    name="tabTotalPorcao"
                    class="form-control"
                    min="1"
                    max="9999"
                    th:value="${tabela.tabTotalPorcao}">
-
+            <div class="form-text">Quantas porções cabem na embalagem inteira.</div>
         </div>
 
         <div class="mb-3">
-
-            <label>Unidade de Medida</label>
-
-            <select name="unidadeId"
-                    class="form-control"
-                    required>
-
+            <label class="form-label">Unidade de Medida da Porção *</label>
+            <select name="unidadeId" class="form-control" required>
                 <option th:each="u : ${unidades}"
                         th:value="${u.undCodigo}"
                         th:text="${u.undNome}"
                         th:selected="${u.undCodigo == tabela.unidadeMedida.undCodigo}">
                 </option>
-
             </select>
-
+            <div class="invalid-feedback">
+                Por favor, selecione a unidade de medida da porção.
+            </div>
         </div>
 
         <div class="mb-3">
-
-            <label>%VD da Energia</label>
-
+            <label class="form-label">%VD da Energia</label>
             <input type="number"
                    step="0.01"
                    name="tabVD"
                    class="form-control"
+                   min="0"
                    th:value="${tabela.tabVD}">
-
         </div>
 
-        <button type="submit" class="btn btn-warning">
-            Salvar Alterações
-        </button>
-
-        <a th:href="@{/tabela}" class="btn btn-secondary">
-            Voltar
-        </a>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-warning">Salvar Alterações</button>
+            <a th:href="@{/tabela}" class="btn btn-secondary ms-2">Voltar</a>
+        </div>
 
     </form>
-
 </div>
 
 <div th:replace="~{rodape :: rodape}"></div>
 
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script>
+(function () {
+    'use strict';
+    document.querySelectorAll('form.needs-validation').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
 </body>
 </html>

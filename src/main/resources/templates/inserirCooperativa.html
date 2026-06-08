@@ -2,111 +2,88 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Nutri - IFTM</title>
-
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/responsive.css}">
     <link rel="stylesheet" th:href="@{/css/jquery.mCustomScrollbar.min.css}">
 </head>
-
 <body class="main-layout">
-
-<div class="loader_bg">
-    <div class="loader"><img th:src="@{/images/loading.gif}" alt="#"/></div>
-</div>
 
 <div th:replace="~{menu :: menu}"></div>
 
-<div class="three_box">
-    <div class="container">
+<div class="container mt-5">
 
-        <!-- FORM -->
-        <div class="row">
-            <div class="col-md-12">
-                <br><br><br><br>
+    <h1>Cadastro de Cooperativa</h1>
 
-                <div class="box_text">
-                    <h1>Gerenciamento de Cooperativa</h1>
+    <form th:action="@{/cooperativas/salvar}" method="post" class="needs-validation" novalidate>
 
-                    <form th:action="@{/cooperativas/salvar}" method="post">
-                        <table width="100%">
-                            <tr>
-                                <th width="30%">Cooperativa</th>
-                                <th width="30%">Endereço</th>
-                                <th width="20%">CNPJ</th>
-                                <th width="20%">Cidade</th>
-                                <th width="20%">Ações</th>
-                            </tr>
-
-                            <tr>
-                                <td><input name="cooNome" type="text" placeholder="Nome da cooperativa" required></td>
-                                <td><input name="cooEndereco" type="text" placeholder="Endereço"></td>
-                                <td><input name="cooCNPJ" type="text" placeholder="00.000.000/0001-00"></td>
-                                <td><input name="cooCidade" type="text" placeholder="Cidade"></td>
-                                <td><button type="submit" class="btn btn-success btn-sm">Inserir</button></td>
-                            </tr>
-                        </table>
-                    </form>
-                </div>
+        <div class="mb-3">
+            <label class="form-label">Nome da Cooperativa *</label>
+            <input type="text"
+                   name="cooNome"
+                   class="form-control"
+                   placeholder="Ex: Cooperativa Frutos do Cerrado"
+                   required>
+            <div class="invalid-feedback">
+                Por favor, informe o nome da cooperativa.
             </div>
         </div>
 
-        <br><br><br>
-
-        <!-- LISTAGEM -->
-        <div class="row">
-            <div class="col-md-12">
-                <div class="box_text">
-                    <table width="100%">
-                        <thead>
-                        <tr>
-                            <th width="5%">Códigos</th>
-                            <th width="30%">Cooperativa</th>
-                            <th width="30%">Endereço</th>
-                            <th width="20%">CNPJ</th>
-                            <th width="20%">Cidade</th>
-                        </tr>
-                        </thead>
-
-                        <tbody>
-                        <tr th:each="c : ${cooperativas}">
-                            <td th:text="${c.cooCodigo}"></td>
-                            <td th:text="${c.cooNome}"></td>
-                            <td th:text="${c.cooEndereco}"></td>
-                            <td th:text="${c.cooCNPJ}"></td>
-                            <td th:text="${c.cooCidade}"></td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="5">
-                                <div class="cooperative-actions">
-                                    <a th:href="@{/cooperativas/inserir}" class="btn btn-secondary btn-sm">Nova Cooperativa</a>
-                                    <a th:href="@{/cooperativas}" class="btn btn-secondary btn-sm">Gerenciar Cooperativas</a>
-                                </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="mb-3">
+            <label class="form-label">Endereço</label>
+            <input type="text"
+                   name="cooEndereco"
+                   class="form-control"
+                   placeholder="Ex: Rua Principal, 45 – Centro">
         </div>
 
-    </div>
+        <div class="mb-3">
+            <label class="form-label">CNPJ</label>
+            <input type="text"
+                   name="cooCNPJ"
+                   class="form-control"
+                   placeholder="00.000.000/0001-00">
+            <div class="form-text">Digite apenas números ou no formato 00.000.000/0001-00.</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Cidade</label>
+            <input type="text"
+                   name="cooCidade"
+                   class="form-control"
+                   placeholder="Ex: Uberlândia">
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Cadastrar Cooperativa</button>
+            <a th:href="@{/cooperativas}" class="btn btn-secondary ms-2">Voltar</a>
+        </div>
+
+    </form>
 </div>
 
-<footer>
-    <div th:replace="rodape :: rodape"></div>
-</footer>
+<footer><div th:replace="~{rodape :: rodape}"></div></footer>
 
 <script th:src="@{/js/jquery.min.js}"></script>
 <script th:src="@{/js/popper.min.js}"></script>
 <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
-<script th:src="@{/js/jquery-3.0.0.min.js}"></script>
 <script th:src="@{/js/jquery.mCustomScrollbar.concat.min.js}"></script>
 <script th:src="@{/js/custom.js}"></script>
-
+<script>
+(function () {
+    'use strict';
+    document.querySelectorAll('form.needs-validation').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
 </body>
 </html>

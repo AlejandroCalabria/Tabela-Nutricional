@@ -9,29 +9,44 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="main-layout">
+
 <div th:replace="~{menu :: menu}"></div>
+
 <div class="container mt-5">
     <h1>Alterar Produto</h1>
-    <form th:action="@{/produtos/salvar}" method="post">
+
+    <form th:action="@{/produtos/salvar}" method="post" class="needs-validation" novalidate>
+
         <input type="hidden" name="proCodigo" th:value="${produto.proCodigo}">
+
         <div class="mb-3">
-            <label>Nome *</label>
-            <input type="text" name="proNome" class="form-control"
-                   th:value="${produto.proNome}" required>
+            <label class="form-label">Nome do Produto *</label>
+            <input type="text"
+                   name="proNome"
+                   class="form-control"
+                   th:value="${produto.proNome}"
+                   required>
+            <div class="invalid-feedback">
+                Por favor, informe o nome do produto.
+            </div>
         </div>
+
         <div class="mb-3">
-            <label>Nome Fantasia</label>
-            <input type="text" name="proNomeFantasia" class="form-control"
+            <label class="form-label">Nome Fantasia</label>
+            <input type="text"
+                   name="proNomeFantasia"
+                   class="form-control"
                    th:value="${produto.proNomeFantasia}">
         </div>
+
         <div class="mb-3">
-            <label>Fabricante</label>
+            <label class="form-label">Produtor Responsável</label>
             <!--
-                CORREÇÃO BUG #11: era name="fabricante" (não faz binding para Fabricante).
+                CORREÇÃO BUG #11: era name="fabricante" — não faz binding para Fabricante.
                 Agora: name="fabricanteId". O controller resolve via fabricanteService.
             -->
             <select name="fabricanteId" class="form-control">
-                <option value="">Sem fabricante</option>
+                <option value="">Sem produtor vinculado</option>
                 <option th:each="f : ${fabricantes}"
                         th:value="${f.fabCodigo}"
                         th:text="${f.fabNome}"
@@ -39,35 +54,74 @@
                 </option>
             </select>
         </div>
+
         <div class="mb-3">
-            <label>Data de Fabricação</label>
+            <label class="form-label">Data de Fabricação</label>
             <input type="date" name="proDataFabricacao" class="form-control"
                    th:value="${produto.proDataFabricacao}">
         </div>
+
         <div class="mb-3">
-            <label>Data de Vencimento</label>
+            <label class="form-label">Data de Vencimento</label>
             <input type="date" name="proDataVencimento" class="form-control"
                    th:value="${produto.proDataVencimento}">
         </div>
+
         <div class="mb-3">
-            <label>Peso (g)</label>
-            <input type="number" step="0.01" name="proPeso" class="form-control"
+            <label class="form-label">Peso Total da Embalagem (g)</label>
+            <input type="number"
+                   step="0.01"
+                   name="proPeso"
+                   class="form-control"
+                   min="0"
                    th:value="${produto.proPeso}">
+            <div class="form-text">Peso líquido do produto na embalagem, em gramas.</div>
         </div>
+
         <div class="mb-3">
-            <label>Ingredientes</label>
-            <textarea name="proIngredientes" class="form-control"
+            <label class="form-label">Lista de Ingredientes</label>
+            <textarea name="proIngredientes"
+                      class="form-control"
+                      rows="3"
                       th:text="${produto.proIngredientes}"></textarea>
+            <div class="form-text">Liste todos os ingredientes em ordem decrescente de quantidade.</div>
         </div>
+
         <div class="mb-3">
-            <label>Recomendações</label>
-            <textarea name="proRecomendacoes" class="form-control"
+            <label class="form-label">Recomendações de Uso / Conservação</label>
+            <textarea name="proRecomendacoes"
+                      class="form-control"
+                      rows="2"
                       th:text="${produto.proRecomendacoes}"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-        <a th:href="@{/produtos}" class="btn btn-secondary">Voltar</a>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            <a th:href="@{/produtos}" class="btn btn-secondary ms-2">Voltar</a>
+        </div>
+
     </form>
 </div>
+
 <footer class="mt-5"><div th:replace="~{rodape :: rodape}"></div></footer>
+
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/popper.min.js}"></script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/custom.js}"></script>
+<script>
+(function () {
+    'use strict';
+    document.querySelectorAll('form.needs-validation').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
 </body>
 </html>

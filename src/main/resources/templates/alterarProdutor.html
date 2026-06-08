@@ -1,160 +1,121 @@
 <!DOCTYPE html>
-<html lang="pt" xmlns:th="http://www.thymeleaf.org">
-
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nutri - IFTM</title>
-
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/responsive.css}">
     <link rel="stylesheet" th:href="@{/css/jquery.mCustomScrollbar.min.css}">
-
-    <link rel="stylesheet"
-          href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
 </head>
-
 <body class="main-layout">
 
-    <!-- LOADER -->
     <div class="loader_bg">
-        <div class="loader">
-            <img th:src="@{/images/loading.gif}" alt="#">
-        </div>
+        <div class="loader"><img th:src="@{/images/loading.gif}" alt="#"></div>
     </div>
 
-    <!-- MENU -->
     <div th:replace="~{menu :: menu}"></div>
 
-    <!-- CONTEÚDO -->
     <div class="three_box">
-
         <div class="container">
-
             <div class="row">
-
                 <div class="col-md-12">
-
                     <br><br><br><br>
-
                     <div class="box_text">
 
-                        <h1>Alterar informações do Produtor</h1>
+                        <h1>Alterar Produtor</h1>
 
-                        <!-- FORM -->
-                        <form th:action="@{/produtores/salvar}" method="post">
+                        <form th:action="@{/produtores/salvar}" method="post" class="needs-validation" novalidate>
 
-                            <!-- ID ESCONDIDO -->
-                            <input type="hidden"
-                                   name="fabCodigo"
-                                   th:value="${fabricante.fabCodigo}">
+                            <input type="hidden" name="fabCodigo" th:value="${fabricante.fabCodigo}">
 
-                            <table width="100%">
+                            <div class="mb-3">
+                                <label class="form-label">Nome do Produtor *</label>
+                                <input type="text"
+                                       name="fabNome"
+                                       class="form-control"
+                                       th:value="${fabricante.fabNome}"
+                                       required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe o nome do produtor.
+                                </div>
+                            </div>
 
-                                <tr>
-                                    <th width="5%">Código</th>
-                                    <th width="20%">Produtor</th>
-                                    <th width="35%">Endereço</th>
-                                    <th width="20%">Contato</th>
-                                    <th width="20%">Cooperativa</th>
-                                </tr>
+                            <div class="mb-3">
+                                <label class="form-label">Endereço *</label>
+                                <input type="text"
+                                       name="fabEndereco"
+                                       class="form-control"
+                                       th:value="${fabricante.fabEndereco}"
+                                       required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe o endereço do produtor.
+                                </div>
+                            </div>
 
-                                <tr>
+                            <div class="mb-3">
+                                <label class="form-label">Contato *</label>
+                                <input type="text"
+                                       name="fabContato"
+                                       class="form-control"
+                                       th:value="${fabricante.fabContato}"
+                                       required>
+                                <div class="invalid-feedback">
+                                    Por favor, informe um contato (telefone ou e-mail).
+                                </div>
+                            </div>
 
-                                    <!-- CÓDIGO -->
-                                    <td th:text="${fabricante.fabCodigo}"></td>
+                            <div class="mb-3">
+                                <label class="form-label">Cooperativa *</label>
+                                <select name="cooperativa.cooCodigo" class="form-control" required>
+                                    <option value="">Selecione a cooperativa</option>
+                                    <option th:each="c : ${cooperativas}"
+                                            th:value="${c.cooCodigo}"
+                                            th:text="${c.cooNome}"
+                                            th:selected="${fabricante.cooperativa != null and c.cooCodigo == fabricante.cooperativa.cooCodigo}">
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione a cooperativa do produtor.
+                                </div>
+                            </div>
 
-                                    <!-- NOME -->
-                                    <td>
-                                        <input type="text"
-                                               name="fabNome"
-                                               th:value="${fabricante.fabNome}">
-                                    </td>
-
-                                    <!-- ENDEREÇO -->
-                                    <td>
-                                        <input type="text"
-                                               name="fabEndereco"
-                                               th:value="${fabricante.fabEndereco}">
-                                    </td>
-
-                                    <!-- CONTATO -->
-                                    <td>
-                                        <input type="text"
-                                               name="fabContato"
-                                               th:value="${fabricante.fabContato}">
-                                    </td>
-
-                                    <!-- COOPERATIVA -->
-                                    <td>
-
-                                        <select name="cooperativa.cooCodigo">
-
-                                            <option
-                                                th:each="c : ${cooperativas}"
-                                                th:value="${c.cooCodigo}"
-                                                th:text="${c.cooNome}"
-                                                th:selected="${fabricante.cooperativa != null and c.cooCodigo == fabricante.cooperativa.cooCodigo}">
-                                            </option>
-
-                                        </select>
-
-                                    </td>
-
-                                </tr>
-
-                            </table>
-
-                            <br>
-
-                            <!-- BOTÕES -->
-                            <div>
-
-                                <!-- SALVAR -->
-                                <button type="submit"
-                                        class="btn btn-success">
-                                    Salvar Alterações
-                                </button>
-
-                                <!-- VOLTAR -->
-                                <a href="/produtores"
-                                   class="btn btn-secondary">
-                                    Voltar
-                                </a>
-
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-success">Salvar Alterações</button>
+                                <a href="/produtores" class="btn btn-secondary ms-2">Voltar</a>
                             </div>
 
                         </form>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
-    <!-- RODAPÉ -->
-    <footer>
-        <div th:replace="~{rodape :: rodape}"></div>
-    </footer>
+    <footer><div th:replace="~{rodape :: rodape}"></div></footer>
 
-    <!-- JS -->
     <script th:src="@{/js/jquery.min.js}"></script>
     <script th:src="@{/js/popper.min.js}"></script>
     <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{/js/jquery-3.0.0.min.js}"></script>
     <script th:src="@{/js/jquery.mCustomScrollbar.concat.min.js}"></script>
     <script th:src="@{/js/custom.js}"></script>
-
+    <script>
+    (function () {
+        'use strict';
+        document.querySelectorAll('form.needs-validation').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+    </script>
 </body>
-
 </html>

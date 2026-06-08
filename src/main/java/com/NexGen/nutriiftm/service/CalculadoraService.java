@@ -106,7 +106,7 @@ public class CalculadoraService {
      * Monta uma Receita transiente a partir da lista de ingredientes.
      * TACOService.buscarPorNome() é chamado UMA ÚNICA VEZ por ingrediente (RI-04).
      */
-    Receita montarReceita(List<Map<String, Object>> ingredientes, double porcao) {
+    public Receita montarReceita(List<Map<String, Object>> ingredientes, double porcao) {
         Receita receita = new Receita();
         receita.setPorcaoG(porcao);
         List<IngredienteReceita> lista = new ArrayList<>();
