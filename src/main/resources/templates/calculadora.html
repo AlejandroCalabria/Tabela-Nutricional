@@ -22,8 +22,40 @@
         .ac-cat { font-size: 10px; opacity: .6; margin-left: 5px; }
         .ac-found { font-size: 11px; color: #198754; margin-top: 2px; }
 
+        /* ══ LAYOUT EM DUAS COLUNAS ══ */
+        .calc-layout {
+            display: flex;
+            align-items: flex-start;
+            gap: 28px;
+        }
+        #col-esquerda { flex: 1 1 0; min-width: 0; }
+
         /* ══ RÓTULO ANVISA ══ */
-        .rotulo-wrapper { overflow-x: auto; }
+        #col-direita {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 0 0 380px;
+            position: sticky;
+            top: 18px;
+        }
+        #rotulo-preview { width: 100%; max-width: 420px; }
+        #rotulo-preview h5 { text-align: center; }
+
+        @media (max-width: 991px) {
+            .calc-layout { flex-direction: column; }
+            #col-direita { position: static; flex-basis: auto; width: 100%; }
+        }
+
+        .rotulo-wrapper {
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+            padding: 22px 18px 26px;
+            background: linear-gradient(180deg, #eef3e9 0%, #e4ece0 100%);
+            border-radius: 10px;
+            border: 1px solid #d7e0d0;
+        }
 
         .rotulo-anvisa {
             display: inline-block;
@@ -38,14 +70,17 @@
             font-weight: normal;
             line-height: 1.35;
             box-sizing: border-box;
+            box-shadow: 0 10px 28px rgba(30, 50, 20, 0.18);
+            border-radius: 2px;
         }
 
         .rotulo-anvisa .r-titulo {
             font-size: 16px;
             font-weight: 900;
-            padding: 4px 10px 3px;
+            padding: 6px 10px 5px;
             border-bottom: 3px solid #000;
             text-align: center;
+            letter-spacing: .2px;
         }
 
         .rotulo-anvisa .r-porcao-bloco {
@@ -172,12 +207,20 @@
         }
         .rv-edit-num { width: 58px; }
         .rotulo-edit-hint {
-            font-size: 10px;
-            color: #888;
-            margin-bottom: 4px;
+            font-size: 11px;
+            color: #5a6b52;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            gap: 6px;
+            background: #f3f7ef;
+            border: 1px solid #dce6d5;
+            border-radius: 20px;
+            padding: 5px 14px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
         }
         .rotulo-edit-hint span.swatch {
             display: inline-block;
@@ -185,6 +228,7 @@
             background: #fffde7;
             border: 1px dashed #aaa;
             border-radius: 2px;
+            flex-shrink: 0;
         }
 
         /* ── Calculadora layout ── */
@@ -196,12 +240,17 @@
         .ing-conv { font-size: 10px; color: #888; margin-top: 2px; }
 
         .calc-section {
-            background: #f8f9fa; border: 1px solid #dee2e6;
-            border-radius: 6px; padding: 12px 14px; margin-bottom: 12px;
+            background: #fff;
+            border: 1px solid #e5e9e1;
+            border-left: 4px solid #5a8a3c;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(30, 50, 20, 0.06);
         }
         .calc-section-title {
-            font-size: 10px; text-transform: uppercase;
-            letter-spacing: .6px; color: #777; font-weight: 700; margin-bottom: 10px;
+            font-size: 11px; text-transform: uppercase;
+            letter-spacing: .8px; color: #5a8a3c; font-weight: 700; margin-bottom: 12px;
         }
 
         .produto-tabs { display: flex; gap: 4px; border-bottom: 2px solid #dee2e6; margin-bottom: 12px; }
@@ -252,6 +301,7 @@
                     </h3>
                     <p class="text-muted mb-4">Insira os ingredientes, a porção e calcule o rótulo ANVISA automaticamente.</p>
 
+                    <div class="calc-layout">
                     <div id="col-esquerda">
 
                         <!-- 1. Produto -->
@@ -263,10 +313,11 @@
                             </div>
                             <div id="painel-existente">
                                 <label class="form-label mb-1" style="font-size:13px;">Selecione o produto *</label>
-                                <select id="produtoId" class="form-select form-select-sm">
+                                <select id="produtoId" class="form-select form-select-sm" onchange="aoSelecionarProdutoExistente()">
                                     <option value="">Selecione um produto...</option>
                                     <option th:each="p : ${produtos}" th:value="${p.proCodigo}" th:text="${p.proNome}"></option>
                                 </select>
+                                <div id="produto-carregando" class="form-text" style="display:none;">Carregando dados do produto…</div>
                             </div>
                             <div id="painel-novo" style="display:none;">
                                 <div class="mb-2">
@@ -604,6 +655,7 @@
                             </div><!-- .rotulo-wrapper -->
                         </div>
                     </div><!-- col-direita -->
+                    </div><!-- calc-layout -->
 
                 </div><!-- box_text -->
             </div>
@@ -627,6 +679,7 @@
     <input type="hidden" name="totalColheres"       id="fs-totalColheres">
     <input type="hidden" name="medidaCaseira"       id="fs-medidaCaseira">
     <input type="hidden" name="ingredientesJson"    id="fs-ingredientesJson">
+    <input type="hidden" name="rotuloJson"          id="fs-rotuloJson">
 </form>
 
 <div th:replace="~{rodape :: rodape}"></div>
@@ -645,7 +698,13 @@ let tacoData = [];
 let contIdx  = 0;
 let abaAtiva = 'existente';
 
-/** Valores calculados pelo backend — NUNCA capturar do rótulo editável ao salvar */
+/**
+ * Snapshot inicial vindo do backend (cálculo pelos ingredientes ou tabela
+ * já salva do produto). Serve só para saber que o rótulo foi preenchido —
+ * o que realmente vai pro banco ao salvar é lido direto dos inputs rv-*
+ * do rótulo (ver coletarRotuloEditado()), incluindo qualquer correção
+ * manual que o usuário tenha feito na tela.
+ */
 let valoresCalculados = null;
 
 fetch('/calculadora/taco-dados')
@@ -659,6 +718,49 @@ function trocarAba(aba) {
     document.getElementById('painel-novo').style.display      = aba === 'novo'      ? '' : 'none';
     document.getElementById('tab-existente').classList.toggle('active', aba === 'existente');
     document.getElementById('tab-novo').classList.toggle('active', aba === 'novo');
+}
+
+/**
+ * Ao selecionar um produto existente: busca a última tabela nutricional já
+ * salva desse produto e preenche porção/unidade/porções/medida caseira +
+ * o rótulo inteiro, já em modo editável — sem precisar recalcular pelos
+ * ingredientes. Se o produto ainda não tiver nenhuma tabela, não faz nada
+ * (usuário segue o fluxo normal: ingredientes → Calcular Rótulo).
+ */
+function aoSelecionarProdutoExistente() {
+    const produtoId = document.getElementById('produtoId').value;
+    const aviso = document.getElementById('produto-carregando');
+    if (!produtoId) return;
+
+    if (aviso) aviso.style.display = '';
+    fetch('/calculadora/produto/' + produtoId + '/dados')
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(dados => {
+            if (aviso) aviso.style.display = 'none';
+            if (!dados.temTabela) return;
+
+            if (dados.unidadeId)    document.getElementById('unidadeId').value = dados.unidadeId;
+            if (dados.porcao)       document.getElementById('porcao').value = dados.porcao;
+            if (dados.totalPorcoes) document.getElementById('totalPorcoes').value = dados.totalPorcoes;
+            document.getElementById('medidaCaseira').value = dados.medidaCaseira || '';
+
+            const porcao = parseFloat(dados.porcao) || 100;
+            valoresCalculados = dados.nutrientes;
+            preencherRotulo(dados.nutrientes, porcao);
+            sincronizarPorcoesRotulo();
+
+            // Campos que preencherRotulo() não cobre (só existem quando editados manualmente)
+            setVal('rv-transPorcao', fmt(dados.nutrientes.transPorcao || 0));
+            setVal('rv-acucarAdicionadoPorcao', fmt(dados.nutrientes.acucaresAdicionadosPorcao || 0));
+
+            document.getElementById('col-direita').style.display = '';
+            document.getElementById('btn-salvar').style.display = 'inline-block';
+            esconderErro();
+        })
+        .catch(err => {
+            if (aviso) aviso.style.display = 'none';
+            console.warn('Não foi possível carregar a tabela do produto:', err.message);
+        });
 }
 
 const DENSIDADE = {
@@ -1034,11 +1136,67 @@ function recalcularVDs() {
 
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
+/** Lê um número puro de um input do rótulo. */
+function numRotulo(id) {
+    const v = parseFloat((document.getElementById(id) || {}).value);
+    return isNaN(v) ? null : v;
+}
+
+/** Lê um %VD do rótulo ("15%" → 15, "**" ou vazio → null). */
+function vdRotulo(id) {
+    const raw = (document.getElementById(id) || {}).value || '';
+    const n = parseInt(raw.replace('%', '').trim(), 10);
+    return isNaN(n) ? null : n;
+}
+
+/**
+ * Monta o payload com exatamente o que está nos campos do rótulo no
+ * momento do clique em "Salvar" — incluindo qualquer correção manual do
+ * usuário. Isso é o que vira o valor oficial gravado no banco.
+ */
+function coletarRotuloEditado() {
+    return {
+        energia100g: numRotulo('rv-energia100g'),
+        energiaPorcao: numRotulo('rv-energiaPorcao'),
+        vdEnergia: vdRotulo('rv-vdEnergia'),
+
+        carboidrato100g: numRotulo('rv-carb100g'),
+        carboidratoPorcao: numRotulo('rv-carbPorcao'),
+        vdCarb: vdRotulo('rv-vdCarb'),
+
+        acucaresTotal100g: numRotulo('rv-acucar100g'),
+        acucaresTotalPorcao: numRotulo('rv-acucarPorcao'),
+        acucaresAdicionadosPorcao: numRotulo('rv-acucarAdicionadoPorcao'),
+
+        proteina100g: numRotulo('rv-prot100g'),
+        proteinaPorcao: numRotulo('rv-protPorcao'),
+        vdProt: vdRotulo('rv-vdProt'),
+
+        lipideos100g: numRotulo('rv-lip100g'),
+        lipideosPorcao: numRotulo('rv-lipPorcao'),
+        vdLip: vdRotulo('rv-vdLip'),
+
+        saturado100g: numRotulo('rv-sat100g'),
+        saturadoPorcao: numRotulo('rv-satPorcao'),
+        vdSat: vdRotulo('rv-vdSat'),
+
+        trans100g: numRotulo('rv-trans100g'),
+        transPorcao: numRotulo('rv-transPorcao'),
+
+        fibra100g: numRotulo('rv-fibra100g'),
+        fibraPorcao: numRotulo('rv-fibraPorcao'),
+        vdFibra: vdRotulo('rv-vdFibra'),
+
+        sodio100g: numRotulo('rv-sodio100g'),
+        sodioPorcao: numRotulo('rv-sodioPorcao'),
+        vdSodio: vdRotulo('rv-vdSodio'),
+    };
+}
+
 function salvar() {
     const ingredientes = coletarIngredientes();
-    if (!ingredientes.length) { mostrarErro('Adicione ingredientes.'); return; }
 
-    if (!valoresCalculados) { mostrarErro('Clique em "Calcular Rótulo" antes de salvar.'); return; }
+    if (!valoresCalculados) { mostrarErro('Clique em "Calcular Rótulo" (ou selecione um produto existente) antes de salvar.'); return; }
 
     // CORREÇÃO C5: validar unidadeId obrigatório antes de submeter
     const unidadeId = document.getElementById('unidadeId').value;
@@ -1072,6 +1230,7 @@ function salvar() {
     document.getElementById('fs-totalColheres').value    = 0;
     document.getElementById('fs-medidaCaseira').value    = document.getElementById('medidaCaseira').value.trim();
     document.getElementById('fs-ingredientesJson').value = JSON.stringify(ingredientes);
+    document.getElementById('fs-rotuloJson').value        = JSON.stringify(coletarRotuloEditado());
 
     document.getElementById('form-salvar').submit();
 }

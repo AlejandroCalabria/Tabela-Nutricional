@@ -23,4 +23,18 @@ public interface TabelaNutricionalRepository extends JpaRepository<TabelaNutrici
            "LEFT JOIN FETCH tne.elemento " +
            "WHERE t.tabCodigo = :id")
     Optional<TabelaNutricional> findByIdComElementos(@Param("id") Long id);
+
+    /**
+     * Usada pela Calculadora para auto-preencher o rótulo ao selecionar um
+     * produto existente. Ordenado do mais recente para o mais antigo — em
+     * tese um produto tem uma única tabela, mas isso protege contra dados
+     * legados com mais de uma.
+     */
+    @Query("SELECT DISTINCT t FROM TabelaNutricional t " +
+           "LEFT JOIN FETCH t.unidadeMedida " +
+           "LEFT JOIN FETCH t.tneElementos tne " +
+           "LEFT JOIN FETCH tne.elemento " +
+           "WHERE t.produto.proCodigo = :produtoId " +
+           "ORDER BY t.tabCodigo DESC")
+    List<TabelaNutricional> findByProdutoComElementos(@Param("produtoId") Long produtoId);
 }

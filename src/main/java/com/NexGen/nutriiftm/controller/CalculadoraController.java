@@ -41,6 +41,7 @@ public class CalculadoraController {
     private final ObjectMapper             objectMapper;  // injetado pelo Spring Boot
 
     private static final int MAX_PORCOES = 9999;
+    private static final double KCAL_TO_KJ = 4.184;
 
     // ── GET /calculadora ──────────────────────────────────────────────────────
     @GetMapping
@@ -49,6 +50,99 @@ public class CalculadoraController {
         model.addAttribute("fabricantes", fabricanteService.listarTodos());
         model.addAttribute("unidades",    unidadeService.listarTodos());
         return "calculadora";
+    }
+
+    // ── GET /calculadora/produto/{id}/dados ────────────────────────────────────
+    /**
+     * Auto-preenchimento ao selecionar um produto existente na calculadora.
+     * Retorna a última tabela nutricional salva desse produto (se houver),
+     * já no mesmo formato usado por preencherRotulo() no front-end, para que
+     * o rótulo apareça pronto e editável sem precisar recalcular pelos
+     * ingredientes.
+     */
+    @GetMapping("/produto/{id}/dados")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> dadosProduto(@PathVariable Long id) {
+        Produto produto;
+        try {
+            produto = produtoService.buscarPorId(id);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Map<String, Object> resp = new LinkedHashMap<>();
+        resp.put("ingredientesTexto", produto.getProIngredientes());
+        Optional<TabelaNutricional> tabelaOpt = tabelaService.buscarUltimaPorProduto(id);
+
+        if (tabelaOpt.isEmpty()) {
+            resp.put("temTabela", false);
+            return ResponseEntity.ok(resp);
+        }
+
+        TabelaNutricional t = tabelaOpt.get();
+        resp.put("temTabela", true);
+        resp.put("porcao", t.getTabPorcao());
+        resp.put("unidadeId", t.getUnidadeMedida() != null ? t.getUnidadeMedida().getUndCodigo() : null);
+        resp.put("totalPorcoes", t.getTabTotalPorcao());
+        resp.put("medidaCaseira", t.getTabMedidaCaseira());
+
+        Map<String, Object> nut = new LinkedHashMap<>();
+        double energia100g = nz(t.getTabValorEnergetico());
+        double energiaPorcao = nz(t.getTabValorEnergeticoPorcao());
+        nut.put("energia100g",     energia100g);
+        nut.put("energiaKj100g",   energia100g * KCAL_TO_KJ);
+        nut.put("energiaPorcao",   energiaPorcao);
+        nut.put("energiaKjPorcao", energiaPorcao * KCAL_TO_KJ);
+        nut.put("vdEnergia",       t.getTabVD());
+
+        for (TabNutElemento tne : t.getTneElementos()) {
+            if (tne.getElemento() == null) continue;
+            long elId = tne.getElemento().getEleCodigo();
+            switch ((int) elId) {
+                case 1 -> {
+                    nut.put("carboidrato100g",   tne.getTneValorPadrao());
+                    nut.put("carboidratoPorcao", tne.getTneValor());
+                    nut.put("vdCarb",            tne.getTneVD());
+                }
+                case 2 -> {
+                    nut.put("acucaresTotal100g",   tne.getTneValorPadrao());
+                    nut.put("acucaresTotalPorcao", tne.getTneValor());
+                }
+                case 3 -> nut.put("acucaresAdicionadosPorcao", tne.getTneValor());
+                case 4 -> {
+                    nut.put("proteina100g",   tne.getTneValorPadrao());
+                    nut.put("proteinaPorcao", tne.getTneValor());
+                    nut.put("vdProt",         tne.getTneVD());
+                }
+                case 5 -> {
+                    nut.put("lipideos100g",   tne.getTneValorPadrao());
+                    nut.put("lipideosPorcao", tne.getTneValor());
+                    nut.put("vdLip",          tne.getTneVD());
+                }
+                case 6 -> {
+                    nut.put("saturado100g",   tne.getTneValorPadrao());
+                    nut.put("saturadoPorcao", tne.getTneValor());
+                    nut.put("vdSat",          tne.getTneVD());
+                }
+                case 7 -> {
+                    nut.put("trans100g",   tne.getTneValorPadrao());
+                    nut.put("transPorcao", tne.getTneValor());
+                }
+                case 15 -> {
+                    nut.put("fibra100g",   tne.getTneValorPadrao());
+                    nut.put("fibraPorcao", tne.getTneValor());
+                    nut.put("vdFibra",     tne.getTneVD());
+                }
+                case 16 -> {
+                    nut.put("sodio100g",   tne.getTneValorPadrao());
+                    nut.put("sodioPorcao", tne.getTneValor());
+                    nut.put("vdSodio",     tne.getTneVD());
+                }
+                default -> { /* nutriente sem campo correspondente no rótulo simplificado */ }
+            }
+        }
+        resp.put("nutrientes", nut);
+        return ResponseEntity.ok(resp);
     }
 
     // ── GET /calculadora/taco-dados ───────────────────────────────────────────
@@ -101,14 +195,21 @@ public class CalculadoraController {
             @RequestParam                   double  porcao,
             @RequestParam                   double  totalPorcoes,
             @RequestParam(required = false, defaultValue = "0") double totalColheres,
-            @RequestParam                   String  ingredientesJson,
+            @RequestParam(required = false) String  ingredientesJson,
             @RequestParam(required = false) String  medidaCaseira,
+            @RequestParam(required = false) String  rotuloJson,
             Model model
     ) {
         // CORREÇÃO #10: Jackson em vez de regex caseiro
         List<Map<String, Object>> ingredientesLista = parsearIngredientesJson(ingredientesJson);
-        if (ingredientesLista.isEmpty()) {
-            model.addAttribute("erro", "Nenhum ingrediente válido informado.");
+
+        // O rótulo editável é a fonte da verdade quando presente (decisão do usuário:
+        // o que foi digitado/corrigido no rótulo é o que deve ser salvo). Sem ele,
+        // cai no comportamento legado: recalcula tudo a partir dos ingredientes.
+        RotuloEditado editado = parsearRotuloJson(rotuloJson);
+
+        if (editado == null && ingredientesLista.isEmpty()) {
+            model.addAttribute("erro", "Adicione ingredientes ou calcule o rótulo antes de salvar.");
             return form(model);
         }
 
@@ -116,19 +217,21 @@ public class CalculadoraController {
         int porcoesSanitizado = Math.min(MAX_PORCOES,
                 Math.max(1, (int) Math.floor(totalPorcoes)));
 
-        String listaIngredientes = montarStringIngredientes(ingredientesLista);
+        String listaIngredientes = ingredientesLista.isEmpty() ? null : montarStringIngredientes(ingredientesLista);
         Produto produto = resolverProduto(produtoId, novoNome, novoNomeFantasia,
                 novoFabricanteId, novoDataFabricacao, novoDataVencimento,
                 novoPeso, novoRecomendacoes, listaIngredientes);
 
-        Receita receita = montarReceita(ingredientesLista, porcao);
-        ValoresNutricionais v;
-        try {
-            v = macroService.calcular(receita);
-        } catch (IllegalArgumentException e) {
-            log.warn("Nenhum ingrediente TBCA encontrado ao salvar: {}", e.getMessage());
-            model.addAttribute("erro", e.getMessage());
-            return form(model);
+        ValoresNutricionais v = null;
+        if (editado == null) {
+            Receita receita = montarReceita(ingredientesLista, porcao);
+            try {
+                v = macroService.calcular(receita);
+            } catch (IllegalArgumentException e) {
+                log.warn("Nenhum ingrediente TBCA encontrado ao salvar: {}", e.getMessage());
+                model.addAttribute("erro", e.getMessage());
+                return form(model);
+            }
         }
 
         TabelaNutricional tabela = new TabelaNutricional();
@@ -140,14 +243,26 @@ public class CalculadoraController {
         if (medidaCaseira != null && !medidaCaseira.isBlank()) {
             tabela.setTabMedidaCaseira(medidaCaseira.trim());
         }
-        // CORREÇÃO #7: valores calculados pelo backend, não capturados do rótulo editável
-        tabela.setTabValorEnergeticoPorcao((double) v.getEnergiaPorcaoKcal());
-        tabela.setTabValorEnergetico((double) v.getEnergia100kcal());
-        tabela.setTabVD((double) v.getVDEnergia());
         tabela.setTabPorcaoPadrao(porcao);
+
+        if (editado != null) {
+            // Valores exatamente como aprovados/editados pelo usuário no rótulo.
+            tabela.setTabValorEnergeticoPorcao(nz(editado.energiaPorcao));
+            tabela.setTabValorEnergetico(nz(editado.energia100g));
+            tabela.setTabVD(nz(editado.vdEnergia));
+        } else {
+            tabela.setTabValorEnergeticoPorcao((double) v.getEnergiaPorcaoKcal());
+            tabela.setTabValorEnergetico((double) v.getEnergia100kcal());
+            tabela.setTabVD((double) v.getVDEnergia());
+        }
+
         TabelaNutricional salva = tabelaService.salvar(tabela);
 
-        salvarNutrientes(salva, v, porcao);
+        if (editado != null) {
+            salvarNutrientesEditados(salva, editado);
+        } else {
+            salvarNutrientes(salva, v, porcao);
+        }
 
         return "redirect:/tabela";
     }
@@ -171,7 +286,7 @@ public class CalculadoraController {
         if (dataVenc != null && !dataVenc.isBlank())  p.setProDataVencimento(LocalDate.parse(dataVenc));
         p.setProPeso(peso);
         p.setProRecomendacoes(recomendacoes);
-        p.setProIngredientes(ingredientes);
+        p.setProIngredientes(ingredientes != null ? ingredientes : "");
         return produtoService.salvar(p);
     }
 
@@ -206,6 +321,74 @@ public class CalculadoraController {
             tneList.add(tne);
         }
         tneRepo.saveAll(tneList);
+    }
+
+    /**
+     * Salva os nutrientes exatamente como aprovados no rótulo editável.
+     * CORREÇÃO: inclui Açúcares Totais (2) e Açúcares Adicionados (3), que
+     * antes nunca eram persistidos mesmo aparecendo calculados na tela.
+     */
+    private void salvarNutrientesEditados(TabelaNutricional tabela, RotuloEditado e) {
+        Map<Long, Elemento> elementoPorId = new HashMap<>();
+        elementoRepo.findAll().forEach(el -> elementoPorId.put(el.getEleCodigo(), el));
+
+        record Linha(long elementoId, Double porcao, Double cem, Double vd) {}
+        List<Linha> linhas = List.of(
+                new Linha(1L,  e.carboidratoPorcao,          e.carboidrato100g,          e.vdCarb),
+                new Linha(2L,  e.acucaresTotalPorcao,         e.acucaresTotal100g,        null),
+                // Açúcares adicionados: a base TBCA não declara esse valor (N.D. por definição —
+                // é uma decisão de formulação do produtor), por isso o rótulo só expõe o campo
+                // "por porção" para edição manual; o valor por 100g fica 0 (não exibido na tela).
+                new Linha(3L,  e.acucaresAdicionadosPorcao,   0.0,                        null),
+                new Linha(4L,  e.proteinaPorcao,              e.proteina100g,             e.vdProt),
+                new Linha(5L,  e.lipideosPorcao,              e.lipideos100g,             e.vdLip),
+                new Linha(6L,  e.saturadoPorcao,              e.saturado100g,             e.vdSat),
+                new Linha(7L,  e.transPorcao,                 e.trans100g,                null),
+                new Linha(15L, e.fibraPorcao,                 e.fibra100g,                e.vdFibra),
+                new Linha(16L, e.sodioPorcao,                 e.sodio100g,                e.vdSodio)
+        );
+
+        List<TabNutElemento> tneList = new ArrayList<>();
+        for (Linha l : linhas) {
+            Elemento elemento = elementoPorId.get(l.elementoId());
+            if (elemento == null) continue;
+            TabNutElemento tne = new TabNutElemento();
+            tne.setTabelaNutricional(tabela);
+            tne.setElemento(elemento);
+            tne.setTneValor(nz(l.porcao()));
+            tne.setTneValorPadrao(nz(l.cem()));
+            tne.setTneVD(l.vd() != null ? l.vd() : 0.0);
+            tneList.add(tne);
+        }
+        tneRepo.saveAll(tneList);
+    }
+
+    private static double nz(Double d) { return d != null ? d : 0.0; }
+
+    /** Parseia o JSON com os valores editados no rótulo. Retorna null se ausente/inválido. */
+    private RotuloEditado parsearRotuloJson(String json) {
+        if (json == null || json.isBlank()) return null;
+        try {
+            return objectMapper.readValue(json, RotuloEditado.class);
+        } catch (Exception e) {
+            log.warn("rotuloJson inválido, caindo para recálculo pelos ingredientes: {}", json, e);
+            return null;
+        }
+    }
+
+    /** Espelha os campos enviados pelo JS a partir dos inputs rv-* do rótulo. */
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    private static class RotuloEditado {
+        public Double energia100g, energiaPorcao, vdEnergia;
+        public Double carboidrato100g, carboidratoPorcao, vdCarb;
+        public Double acucaresTotal100g, acucaresTotalPorcao;
+        public Double acucaresAdicionadosPorcao;
+        public Double proteina100g, proteinaPorcao, vdProt;
+        public Double lipideos100g, lipideosPorcao, vdLip;
+        public Double saturado100g, saturadoPorcao, vdSat;
+        public Double trans100g, transPorcao;
+        public Double fibra100g, fibraPorcao, vdFibra;
+        public Double sodio100g, sodioPorcao, vdSodio;
     }
 
     private Receita montarReceita(List<Map<String, Object>> ingredientes, double porcao) {

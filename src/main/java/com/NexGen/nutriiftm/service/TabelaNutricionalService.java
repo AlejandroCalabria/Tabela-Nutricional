@@ -39,6 +39,17 @@ public class TabelaNutricionalService {
         return repo.findByIdComElementos(id).orElseThrow();
     }
 
+    /**
+     * Última tabela nutricional cadastrada para um produto, com nutrientes
+     * carregados. Usado pela Calculadora para auto-preencher o rótulo ao
+     * selecionar um produto existente. Retorna vazio se o produto ainda não
+     * tem nenhuma tabela.
+     */
+    public java.util.Optional<TabelaNutricional> buscarUltimaPorProduto(Long produtoId) {
+        List<TabelaNutricional> tabelas = repo.findByProdutoComElementos(produtoId);
+        return tabelas.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(tabelas.get(0));
+    }
+
     public TabelaNutricional salvar(TabelaNutricional t) { return repo.save(t); }
     public void deletar(Long id) { repo.deleteById(id); }
 
