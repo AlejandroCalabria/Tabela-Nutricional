@@ -1,0 +1,33 @@
+# Como aplicar estes arquivos no seu projeto
+
+Este pacote espelha exatamente a estrutura de pastas do projeto `nutriiftm`.
+Basta extrair e copiar o conteudo da pasta `nutriiftm-incrementos/` por cima
+da raiz do seu projeto, mesclando as pastas (NAO substitua a pasta toda,
+copie o CONTEUDO para dentro do projeto existente).
+
+## No Linux/Mac, dentro da pasta do projeto (~/Documentos/Programacao/Projeto/nutriiftm):
+
+unzip -o /caminho/para/nutriiftm-incrementos.zip -d /tmp/incrementos
+cp -rv /tmp/incrementos/nutriiftm-incrementos/* .
+
+## Depois de copiar, rode:
+
+chmod +x scripts/backup-db.sh
+./mvnw clean spring-boot:run
+
+## Arquivos incluidos:
+
+- pom.xml                                          (substitui o existente - adiciona Flyway)
+- src/main/resources/application.properties        (substitui o existente)
+- src/main/resources/application-dev.properties     (novo)
+- src/main/resources/application-prod.properties    (novo)
+- src/main/resources/logback-spring.xml             (novo)
+- src/main/resources/db/migration/V1__baseline.sql  (novo)
+- src/main/resources/templates/error.html           (novo)
+- src/main/resources/templates/imprimirTabela.html  (substitui - remove referencia a upload.js)
+- src/main/java/com/NexGen/nutriiftm/exception/GlobalExceptionHandler.java (novo)
+- scripts/backup-db.sh                              (novo)
+
+## Nao esqueca de apagar manualmente (nao incluido no zip por ser uma remocao):
+
+rm src/main/resources/static/js/upload.js

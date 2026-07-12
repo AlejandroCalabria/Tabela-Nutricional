@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Nutri - IFTM | Erro</title>
+
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/responsive.css}">
+</head>
+
+<body class="main-layout">
+
+    <!-- Menu -->
+    <div th:replace="~{menu :: menu}"></div>
+
+    <!-- Conteudo -->
+    <div class="three_box">
+        <div class="container" style="padding: 60px 0; text-align: center;">
+            <h1 th:text="${statusCode}" style="font-size: 4rem; margin-bottom: 0;">Erro</h1>
+            <h3 th:text="${titulo}">Algo deu errado</h3>
+            <p th:text="${mensagem}" style="max-width: 600px; margin: 20px auto;">
+                Ocorreu um erro inesperado.
+            </p>
+            <a th:href="@{/}" class="btn btn-primary">Voltar para a pagina inicial</a>
+        </div>
+    </div>
+
+</body>
+</html>
