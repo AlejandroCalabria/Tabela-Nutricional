@@ -74,7 +74,7 @@ public class TACOService {
         @JsonProperty("saturated_g")     private Double  saturatedG;
         @JsonProperty("monounsaturated_g") private Double monounsaturatedG;
         @JsonProperty("polyunsaturated_g") private Double polyunsaturatedG;
-        @JsonProperty("ash_g")           private Double  ashG;
+        @JsonProperty("ashes_g")         private Double  ashG;
     }
 
     public TACOService() {

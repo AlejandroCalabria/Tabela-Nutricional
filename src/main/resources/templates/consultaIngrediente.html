@@ -376,7 +376,7 @@ function ciLinhaMicro(n) {
 function ciPreencherResultado(d) {
     try {
         document.getElementById('ci-vazio').style.display = 'none';
-        document.getElementById('ci-resultado').style.display = '';
+        document.getElementById('ci-resultado').style.display = 'block';
 
         document.getElementById('ci-descricao').textContent = d.descricao;
         document.getElementById('ci-categoria-txt').textContent = d.categoria || '—';

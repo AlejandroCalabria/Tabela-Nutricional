@@ -359,7 +359,45 @@
     </div>
 
   </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import {
+      getAuth, signInWithEmailAndPassword,
+      GoogleAuthProvider, signInWithPopup
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.querySelector("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, senha);
+        const token = await cred.user.getIdToken();
+        await enviarTokenParaBackend(token);
+      } catch (err) {
+        alert("Erro ao entrar: " + err.message);
+      }
+    });
+
+    document.querySelector(".gsi-material-button").addEventListener("click", async () => {
+      const provider = new GoogleAuthProvider();
+      const cred = await signInWithPopup(auth, provider);
+      const token = await cred.user.getIdToken();
+      await enviarTokenParaBackend(token);
+    });
+
+    async function enviarTokenParaBackend(token) {
+      const resp = await fetch("/auth/sessao", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token }
+      });
+      if (resp.ok) window.location.href = "/";
+      else alert("Falha ao autenticar no servidor.");
+    }
+  </script>
 </section>
 <!-- ── fim do fragment login ── -->
 
