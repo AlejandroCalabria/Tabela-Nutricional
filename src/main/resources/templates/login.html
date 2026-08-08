@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<body>
+
+<!-- ======================================================
+     FRAGMENT: login
+     Uso nas páginas: th:replace="~{fragments/login :: login}"
+     ====================================================== -->
+<section th:fragment="login">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600;700&family=Roboto:wght@500&display=swap');
+
+    .nutri-login-wrap {
+      display: flex;
+      min-height: 100vh;
+      background: #14100e;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ── LADO ESQUERDO: foto ── */
+    .nutri-login-photo {
+      position: relative;
+      flex: 1 1 54%;
+      min-height: 340px;
+      background: #14100e;
+      overflow: hidden;
+    }
+    .nutri-login-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .nutri-login-back {
+      position: absolute;
+      top: 34px;
+      left: 34px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #f5f2ea;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+    }
+    .nutri-login-back svg {
+      width: 18px;
+      height: 18px;
+      stroke: #76b82a;
+    }
+
+    /* ── LADO DIREITO: formulário ── */
+    .nutri-login-form-side {
+      flex: 1 1 46%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 40px;
+    }
+    .nutri-login-inner {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .nutri-login-logo {
+      display: block;
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 22px;
+      object-fit: contain;
+    }
+
+    .nutri-login-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+      font-size: 33px;
+      text-align: center;
+      margin: 0 0 38px;
+      color: #f5f2ea;
+      letter-spacing: 0.01em;
+    }
+
+    .nutri-login-field-group {
+      margin-bottom: 24px;
+    }
+    .nutri-login-label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #6b9331;
+      margin-bottom: 9px;
+      font-family: 'Inter', sans-serif;
+    }
+    .nutri-login-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: #f1f8e9;
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .nutri-login-input-wrap:focus-within {
+      border-color: #8fb02e;
+      box-shadow: 0 0 0 3px rgba(143,176,46,0.22);
+    }
+    .nutri-login-input-wrap svg {
+      width: 16px;
+      height: 16px;
+      margin-left: 14px;
+      flex-shrink: 0;
+      stroke: #7c8a68;
+      opacity: 0.8;
+    }
+    .nutri-login-input-wrap input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      outline: none;
+      padding: 13px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14.5px;
+      color: #2b2a1f;
+    }
+    .nutri-login-input-wrap input::placeholder {
+      color: #8f9380;
+    }
+
+    .nutri-login-helper {
+      margin: 10px 2px 0;
+      font-size: 13px;
+      color: #f5f2ea;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+    }
+    .nutri-login-helper a {
+      color: #87ab52;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .nutri-login-helper a:hover {
+      text-decoration: underline;
+    }
+
+    .nutri-login-submit {
+      width: 100%;
+      margin-top: 22px;
+      padding: 15px 18px;
+      border: none;
+      border-radius: 999px;
+      background: #76b82a;
+      color: #12140a;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: filter .15s ease, transform .12s ease;
+    }
+    .nutri-login-submit:hover {
+      filter: brightness(1.06);
+    }
+    .nutri-login-submit:active {
+      transform: translateY(1px);
+    }
+
+    .nutri-login-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 26px 0 22px;
+      color: #5c5b50;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      font-family: 'Inter', sans-serif;
+    }
+    .nutri-login-divider::before,
+    .nutri-login-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #2a2620;
+    }
+
+    /* ── Botão Google (branding oficial, não recolorir) ── */
+    .nutri-login-google-wrap {
+      display: flex;
+      justify-content: center;
+    }
+    .gsi-material-button {
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -webkit-appearance: none;
+      background-color: WHITE;
+      background-image: none;
+      border: 1px solid #747775;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      color: #1f1f1f;
+      cursor: pointer;
+      font-family: 'Roboto', arial, sans-serif;
+      font-size: 14px;
+      height: 40px;
+      letter-spacing: 0.25px;
+      outline: none;
+      overflow: hidden;
+      padding: 0 12px;
+      position: relative;
+      text-align: center;
+      -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s;
+      transition: background-color .218s, border-color .218s, box-shadow .218s;
+      vertical-align: middle;
+      white-space: nowrap;
+      width: 100%;
+      max-width: 400px;
+      min-width: min-content;
+    }
+    .gsi-material-button .gsi-material-button-icon {
+      height: 20px;
+      margin-right: 10px;
+      min-width: 20px;
+      width: 20px;
+    }
+    .gsi-material-button .gsi-material-button-content-wrapper {
+      -webkit-align-items: center;
+      align-items: center;
+      display: flex;
+      -webkit-flex-direction: row;
+      flex-direction: row;
+      -webkit-flex-wrap: nowrap;
+      flex-wrap: nowrap;
+      height: 100%;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+    }
+    .gsi-material-button .gsi-material-button-contents {
+      -webkit-flex-grow: 0;
+      flex-grow: 0;
+      font-family: 'Roboto', arial, sans-serif;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: top;
+    }
+    .gsi-material-button .gsi-material-button-state {
+      -webkit-transition: opacity .218s;
+      transition: opacity .218s;
+      bottom: 0;
+      left: 0;
+      opacity: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+    .gsi-material-button:disabled {
+      cursor: default;
+      background-color: #ffffff61;
+      border-color: #1f1f1f1f;
+    }
+    .gsi-material-button:disabled .gsi-material-button-contents {
+      opacity: 38%;
+    }
+    .gsi-material-button:disabled .gsi-material-button-icon {
+      opacity: 38%;
+    }
+    .gsi-material-button:not(:disabled):active .gsi-material-button-state,
+    .gsi-material-button:not(:disabled):focus .gsi-material-button-state {
+      background-color: #303030;
+      opacity: 12%;
+    }
+    .gsi-material-button:not(:disabled):hover {
+      -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+      box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+    }
+    .gsi-material-button:not(:disabled):hover .gsi-material-button-state {
+      background-color: #303030;
+      opacity: 8%;
+    }
+
+    @media (max-width: 840px) {
+      .nutri-login-wrap { flex-direction: column; }
+      .nutri-login-photo { display: none; }
+      .nutri-login-form-side { padding: 60px 26px; }
+    }
+  </style>
+
+  <div class="nutri-login-wrap">
+
+    <!-- ── LADO ESQUERDO: foto (imagem a ser inserida) ── -->
+    <div class="nutri-login-photo">
+      <img th:src="@{/images/login-foto.svg}" src="/images/plantinha.svg" alt="Muda germinando na terra"/>
+      <a th:href="@{/}" class="nutri-login-back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Voltar
+      </a>
+    </div>
+
+    <!-- ── LADO DIREITO: formulário ── -->
+    <div class="nutri-login-form-side">
+      <div class="nutri-login-inner">
+
+        <img class="nutri-login-logo" th:src="@{/images/logo.png}" src="/images/logo.png" alt="Logo"/>
+
+        <h1 class="nutri-login-title">Entrar na Conta</h1>
+
+        <form th:action="@{/login}" method="post">
+
+          <div class="nutri-login-field-group">
+            <label for="email" class="nutri-login-label">Email</label>
+            <div class="nutri-login-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+              <input id="email" name="email" type="email" placeholder="exemplo@exemplo.com"/>
+            </div>
+            <p class="nutri-login-helper">Ainda não tem uma conta? <a th:href="@{/cadastro}">cadastrar</a></p>
+          </div>
+
+          <div class="nutri-login-field-group">
+            <label for="senha" class="nutri-login-label">Senha</label>
+            <div class="nutri-login-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+              <input id="senha" name="senha" type="password" placeholder="············"/>
+            </div>
+            <p class="nutri-login-helper">esqueceu sua senha? <a th:href="@{/recuperar-senha}">recuperar</a></p>
+          </div>
+
+          <button type="submit" class="nutri-login-submit">confirmar</button>
+
+        </form>
+
+        <div class="nutri-login-divider">OU</div>
+
+        <div class="nutri-login-google-wrap">
+          <button class="gsi-material-button" type="button">
+            <div class="gsi-material-button-state"></div>
+            <div class="gsi-material-button-content-wrapper">
+              <div class="gsi-material-button-icon">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display:block;">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                  <path fill="none" d="M0 0h48v48H0z"></path>
+                </svg>
+              </div>
+              <span class="gsi-material-button-contents">Continuar com o Google</span>
+              <span style="display:none;">Continuar com o Google</span>
+            </div>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</section>
+<!-- ── fim do fragment login ── -->
+
+</body>
+</html>
