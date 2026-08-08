@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Consultar Ingrediente - Nutri IFTM</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/responsive.css}">
+    <style>
+        /* ── Autocomplete (mesmo padrão da Calculadora) ── */
+        .ac-wrap { position: relative; }
+        .ac-list {
+            display: none; position: absolute; z-index: 9999;
+            background: #fff; border: 1px solid #ccc;
+            border-radius: 0 0 6px 6px; max-height: 260px;
+            overflow-y: auto; width: 100%;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        }
+        .ac-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+        .ac-item:hover { background: #0d6efd; color: #fff; }
+        .ac-cat { font-size: 10px; opacity: .6; margin-left: 6px; }
+        .ac-found { font-size: 11px; color: #198754; margin-top: 2px; }
+
+        .calc-section {
+            background: #fff;
+            border: 1px solid #e5e9e1;
+            border-left: 4px solid #5a8a3c;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(30, 50, 20, 0.06);
+        }
+        .calc-section-title {
+            font-size: 11px; text-transform: uppercase;
+            letter-spacing: .8px; color: #5a8a3c; font-weight: 700; margin-bottom: 12px;
+        }
+
+        .ci-badge-consulta {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11px; font-weight: 600; color: #2e6b1e;
+            background: #e8f5e9; border: 1px solid #c8e6c9;
+            border-radius: 20px; padding: 4px 12px; margin-bottom: 10px;
+        }
+
+        #ci-resultado { display: none; }
+
+        .ci-cabecalho {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            flex-wrap: wrap; gap: 10px; margin-bottom: 4px;
+        }
+        .ci-cabecalho h4 { margin: 0; }
+        .ci-categoria {
+            font-size: 11px; color: #5a8a3c; background: #f0f6ec;
+            border: 1px solid #dce6d5; border-radius: 12px; padding: 3px 10px;
+            white-space: nowrap;
+        }
+
+        .ci-qtd-linha { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0 18px; }
+        .ci-qtd-linha label { font-size: 13px; font-weight: 600; margin: 0; }
+        .ci-qtd-linha input { width: 110px; }
+        .ci-qtd-linha .unidade { font-size: 13px; color: #666; }
+
+        table.ci-tabela { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 8px; }
+        table.ci-tabela caption {
+            caption-side: top; text-align: left; font-size: 12px; font-weight: 700;
+            color: #3a3a3a; text-transform: uppercase; letter-spacing: .4px;
+            padding-bottom: 8px;
+        }
+        table.ci-tabela th, table.ci-tabela td {
+            padding: 7px 10px; border-bottom: 1px solid #eee; text-align: right;
+        }
+        table.ci-tabela th:first-child, table.ci-tabela td:first-child { text-align: left; }
+        table.ci-tabela thead th {
+            background: #f6f9f4; border-bottom: 2px solid #d7e0d0;
+            font-size: 11px; text-transform: uppercase; letter-spacing: .3px; color: #555;
+        }
+        table.ci-tabela tbody tr:hover { background: #fafcf8; }
+        table.ci-tabela tr.ci-linha-energia td { font-weight: 700; border-bottom: 2px solid #000; }
+        .ci-vd-na { color: #999; font-size: 11px; }
+
+        .ci-legenda {
+            font-size: 11px; color: #888; margin-top: 4px; margin-bottom: 22px;
+        }
+
+        .ci-vazio {
+            text-align: center; color: #888; padding: 40px 10px;
+            border: 1px dashed #dce6d5; border-radius: 8px; background: #fafcf8;
+        }
+    </style>
+</head>
+<body class="main-layout">
+
+<div class="loader_bg">
+    <div class="loader"><img th:src="@{/images/loading.gif}" alt="#"></div>
+</div>
+
+<div th:replace="~{menu :: menu}"></div>
+
+<div class="three_box">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="box_text">
+
+                    <h3>Consultar Ingrediente
+                        <small style="font-size:14px;color:#888;font-weight:normal;">(Tabela TBCA)</small>
+                    </h3>
+                    <div class="ci-badge-consulta">
+                        <i class="fa fa-eye"></i> Somente consulta — nada é salvo aqui
+                    </div>
+                    <p class="text-muted mb-4">
+                        Busque um ingrediente da base TBCA e veja sua composição nutricional
+                        completa para a quantidade padrão (100g) e para a quantidade que você quiser conferir.
+                    </p>
+
+                    <div class="calc-section">
+                        <p class="calc-section-title">Buscar ingrediente</p>
+                        <div class="ac-wrap" style="max-width:520px;">
+                            <input type="text" id="ci-nome" class="form-control"
+                                   placeholder="Digite o nome do ingrediente... (ex: arroz, feijão, leite integral)"
+                                   autocomplete="off">
+                            <div class="ac-list" id="ci-ac-list"></div>
+                        </div>
+                        <div id="ci-ac-info" class="ac-found"></div>
+                    </div>
+
+                    <div id="ci-vazio" class="ci-vazio">
+                        <i class="fa fa-search" style="font-size:22px;opacity:.5;"></i>
+                        <p class="mb-0 mt-2" id="ci-vazio-texto">Nenhum ingrediente selecionado ainda.</p>
+                    </div>
+
+                    <div id="ci-resultado">
+
+                        <div class="calc-section">
+                            <div class="ci-cabecalho">
+                                <h4 id="ci-descricao">—</h4>
+                                <span class="ci-categoria" id="ci-categoria-txt">—</span>
+                            </div>
+
+                            <div class="ci-qtd-linha">
+                                <label for="ci-quantidade">Quantidade para consulta:</label>
+                                <input type="number" id="ci-quantidade" class="form-control form-control-sm"
+                                       value="100" min="0.001" step="0.001" oninput="ciAgendarRecalculo()">
+                                <select id="ci-unidade" class="form-select form-select-sm"
+                                        style="width:90px;" onchange="ciAgendarRecalculo()">
+                                    <option value="g">g</option>
+                                    <option value="kg">kg</option>
+                                    <option value="ml">ml</option>
+                                    <option value="L">L</option>
+                                    <option value="unid">unid</option>
+                                </select>
+                                <span id="ci-conv-hint" style="font-size:11px;color:#888;"></span>
+                                <span style="font-size:11px;color:#999;">
+                                    (a coluna "Padrão" sempre mostra o valor oficial da TBCA, por 100g)
+                                </span>
+                            </div>
+
+                            <table class="ci-tabela">
+                                <caption>Informação Nutricional (declaração obrigatória)</caption>
+                                <thead>
+                                    <tr>
+                                        <th>Nutriente</th>
+                                        <th>Padrão (100g)</th>
+                                        <th>%VD</th>
+                                        <th id="ci-th-selecionado">Selecionado</th>
+                                        <th>%VD</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ci-corpo-macros"></tbody>
+                            </table>
+                            <p class="ci-legenda">
+                                %VD = % Valores Diários de referência com base em uma dieta de 2.000 kcal.
+                                "**" = %VD não estabelecido (IN 75/2020).
+                            </p>
+                        </div>
+
+                        <div class="calc-section">
+                            <table class="ci-tabela">
+                                <caption>Informações complementares (micronutrientes e vitaminas)</caption>
+                                <thead>
+                                    <tr>
+                                        <th>Nutriente</th>
+                                        <th>Padrão (100g)</th>
+                                        <th id="ci-th-selecionado-2">Selecionado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ci-corpo-micros"></tbody>
+                            </table>
+                            <p class="ci-legenda">
+                                Valores complementares da TBCA — sem %VD de referência cadastrado no sistema.
+                            </p>
+                        </div>
+
+                    </div><!-- ci-resultado -->
+
+                    <a th:href="@{/}" class="btn btn-secondary">Voltar</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{rodape :: rodape}"></div>
+
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script>
+$(window).on('load', function () { $('.loader_bg').fadeOut('slow'); });
+
+let ciTacoData = [];
+let ciCodigoSelecionado = null;
+let ciDebounce = null;
+
+fetch('/ingredientes/consulta/dados')
+    .then(r => r.json())
+    .then(data => { ciTacoData = data; })
+    .catch(() => console.warn('Erro ao carregar lista de ingredientes da TBCA'));
+
+function ciNormalizar(s) {
+    return (s || '').toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[-,.]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+const ciInput = document.getElementById('ci-nome');
+const ciList  = document.getElementById('ci-ac-list');
+const ciInfo  = document.getElementById('ci-ac-info');
+
+ciInput.addEventListener('input', function () {
+    ciCodigoSelecionado = null;
+    const val = ciNormalizar(this.value);
+    ciList.innerHTML = '';
+    if (val.length < 2) { ciList.style.display = 'none'; return; }
+
+    // Busca fuzzy client-side: mesma técnica usada na Calculadora —
+    // cada token digitado precisa aparecer na descrição do alimento.
+    const tokens = val.split(/\s+/);
+    let matches = ciTacoData.filter(item =>
+        tokens.every(t => ciNormalizar(item.descricao).includes(t))
+    );
+    matches.sort((a, b) => {
+        const da = ciNormalizar(a.descricao), db = ciNormalizar(b.descricao);
+        if (da.startsWith(val)) return -1;
+        if (db.startsWith(val)) return 1;
+        return a.descricao.localeCompare(b.descricao);
+    });
+
+    if (!matches.length) { ciList.style.display = 'none'; return; }
+    matches.slice(0, 12).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'ac-item';
+        div.innerHTML = item.descricao + '<span class="ac-cat">[' + item.categoria + ']</span>';
+        div.onclick = () => {
+            ciInput.value = item.descricao;
+            ciCodigoSelecionado = item.codigo;
+            ciList.style.display = 'none';
+            ciInfo.textContent = '✔ ' + item.energia + ' kcal/100g';
+            ciConsultar();
+        };
+        ciList.appendChild(div);
+    });
+    ciList.style.display = 'block';
+});
+
+document.addEventListener('click', e => {
+    if (!ciList.contains(e.target) && e.target !== ciInput) ciList.style.display = 'none';
+});
+
+/** Mesma tabela de densidades da Calculadora — mantém coerência entre as duas telas. */
+const CI_DENSIDADE = {
+    'agua':1.0,'leite':1.03,'oleo':0.92,'azeite':0.915,
+    'vinagre':1.01,'mel':1.4,'cachaça':0.93,'cerveja':1.0,
+    'vinho':0.99,'suco':1.04,'iogurte':1.05,'creme':1.0,
+};
+
+function ciGetDensidade(nomeBruto) {
+    const n = ciNormalizar(nomeBruto || '');
+    for (const [chave, dens] of Object.entries(CI_DENSIDADE)) {
+        if (n.includes(chave)) return dens;
+    }
+    return 1.0;
+}
+
+/** Converte quantidade+unidade para gramas — mesma regra usada na Calculadora. */
+function ciConverterParaGramas(qtd, unidade, nomeIngrediente) {
+    switch (unidade) {
+        case 'g':    return qtd;
+        case 'kg':   return qtd * 1000;
+        case 'ml':   return qtd * ciGetDensidade(nomeIngrediente);
+        case 'L':    return qtd * 1000 * ciGetDensidade(nomeIngrediente);
+        case 'unid': return qtd * 60;
+        default:     return qtd;
+    }
+}
+
+function ciAtualizarHintConversao(gramas, unidade, nomeIngrediente) {
+    const hint = document.getElementById('ci-conv-hint');
+    if (unidade === 'g') { hint.textContent = ''; return; }
+    let txt = '≈ ' + gramas.toFixed(1) + ' g';
+    if ((unidade === 'L' || unidade === 'ml') && ciGetDensidade(nomeIngrediente) !== 1.0) {
+        txt += ' (densidade ' + ciGetDensidade(nomeIngrediente) + ')';
+    }
+    if (unidade === 'unid') txt += ' (60g/unid)';
+    hint.textContent = txt;
+}
+
+/** Recalcula com um pequeno debounce enquanto o usuário digita a quantidade. */
+function ciAgendarRecalculo() {
+    if (!ciCodigoSelecionado) return;
+    clearTimeout(ciDebounce);
+    ciDebounce = setTimeout(ciConsultar, 250);
+}
+
+function ciMostrarErro(msg) {
+    console.error('Consulta de Ingrediente:', msg);
+    document.getElementById('ci-vazio-texto').textContent = msg;
+    document.getElementById('ci-vazio').style.display = '';
+    document.getElementById('ci-resultado').style.display = 'none';
+}
+
+async function ciConsultar() {
+    if (!ciCodigoSelecionado) return;
+
+    const qtdInput = parseFloat(document.getElementById('ci-quantidade').value);
+    const unidade = document.getElementById('ci-unidade').value;
+    const quantidadeGramas = ciConverterParaGramas(
+        (!qtdInput || qtdInput <= 0) ? 100 : qtdInput,
+        unidade,
+        ciInput.value
+    );
+    ciAtualizarHintConversao(quantidadeGramas, unidade, ciInput.value);
+
+    try {
+        const resp = await fetch('/ingredientes/consulta/' + encodeURIComponent(ciCodigoSelecionado) + '?quantidade=' + quantidadeGramas);
+        if (!resp.ok) {
+            const corpo = await resp.text().catch(() => '');
+            ciMostrarErro('Erro ao consultar ingrediente (HTTP ' + resp.status + '). ' + corpo);
+            return;
+        }
+        const dados = await resp.json();
+        ciPreencherResultado(dados);
+    } catch (err) {
+        ciMostrarErro('Falha de comunicação com o servidor: ' + err.message);
+    }
+}
+
+function ciFmt(valor) {
+    if (valor === null || valor === undefined) return '—';
+    return Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function ciFmtVD(vd) {
+    return (vd === null || vd === undefined) ? '<span class="ci-vd-na">**</span>' : vd + '%';
+}
+
+function ciLinhaMacro(n) {
+    return '<tr>' +
+        '<td>' + n.nome + '</td>' +
+        '<td>' + ciFmt(n.valorPadrao) + ' ' + n.unidade + '</td>' +
+        '<td>' + ciFmtVD(n.vdPadrao) + '</td>' +
+        '<td>' + ciFmt(n.valorSelecionado) + ' ' + n.unidade + '</td>' +
+        '<td>' + ciFmtVD(n.vdSelecionado) + '</td>' +
+        '</tr>';
+}
+
+function ciLinhaMicro(n) {
+    return '<tr>' +
+        '<td>' + n.nome + '</td>' +
+        '<td>' + ciFmt(n.valorPadrao) + ' ' + n.unidade + '</td>' +
+        '<td>' + ciFmt(n.valorSelecionado) + ' ' + n.unidade + '</td>' +
+        '</tr>';
+}
+
+function ciPreencherResultado(d) {
+    try {
+        document.getElementById('ci-vazio').style.display = 'none';
+        document.getElementById('ci-resultado').style.display = '';
+
+        document.getElementById('ci-descricao').textContent = d.descricao;
+        document.getElementById('ci-categoria-txt').textContent = d.categoria || '—';
+
+        const rotuloSel = 'Selecionado (' + ciFmt(d.quantidadeSelecionadaG) + 'g)';
+        document.getElementById('ci-th-selecionado').textContent = rotuloSel;
+        document.getElementById('ci-th-selecionado-2').textContent = rotuloSel;
+
+        let macrosHtml =
+            '<tr class="ci-linha-energia">' +
+                '<td>Valor Energético</td>' +
+                '<td>' + d.energiaPadraoKcal + ' kcal<br><small style="font-weight:400;color:#666;">' + d.energiaPadraoKj + ' kJ</small></td>' +
+                '<td>' + ciFmtVD(d.vdEnergiaPadrao) + '</td>' +
+                '<td>' + d.energiaSelecionadaKcal + ' kcal<br><small style="font-weight:400;color:#666;">' + d.energiaSelecionadaKj + ' kJ</small></td>' +
+                '<td>' + ciFmtVD(d.vdEnergiaSelecionada) + '</td>' +
+            '</tr>';
+        (d.macronutrientes || []).forEach(n => macrosHtml += ciLinhaMacro(n));
+        document.getElementById('ci-corpo-macros').innerHTML = macrosHtml;
+
+        let microsHtml = '';
+        (d.complementares || []).forEach(n => microsHtml += ciLinhaMicro(n));
+        document.getElementById('ci-corpo-micros').innerHTML = microsHtml;
+    } catch (err) {
+        ciMostrarErro('Erro ao exibir os dados retornados: ' + err.message);
+    }
+}
+</script>
+
+</body>
+</html>
