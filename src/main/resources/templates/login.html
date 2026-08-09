@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar — Nutri IFTM</title>
+</head>
 <body>
 
 <!-- ======================================================
@@ -359,12 +364,21 @@
     </div>
 
   </div>
-  <script type="module">
+  <script type="module" th:inline="javascript">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import {
       getAuth, signInWithEmailAndPassword,
       GoogleAuthProvider, signInWithPopup
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: /*[[${firebaseWeb.apiKey}]]*/ "",
+      authDomain: /*[[${firebaseWeb.authDomain}]]*/ "",
+      projectId: /*[[${firebaseWeb.projectId}]]*/ "",
+      storageBucket: /*[[${firebaseWeb.storageBucket}]]*/ "",
+      messagingSenderId: /*[[${firebaseWeb.messagingSenderId}]]*/ "",
+      appId: /*[[${firebaseWeb.appId}]]*/ ""
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);

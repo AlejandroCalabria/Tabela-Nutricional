@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recuperar senha — Nutri IFTM</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    body { margin: 0; }
+    .nutri-rec-wrap {
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: #14100e;
+      font-family: 'Inter', sans-serif;
+      padding: 40px 20px;
+    }
+    .nutri-rec-inner { width: 100%; max-width: 380px; text-align: center; }
+    .nutri-rec-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+      font-size: 28px;
+      margin: 0 0 12px;
+      color: #f5f2ea;
+    }
+    .nutri-rec-sub {
+      font-size: 14px;
+      color: #cfcabf;
+      margin: 0 0 28px;
+    }
+    .nutri-rec-field-group { margin-bottom: 20px; text-align: left; }
+    .nutri-rec-label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #6b9331;
+      margin-bottom: 9px;
+    }
+    .nutri-rec-input-wrap {
+      background: #f1f8e9;
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+    }
+    .nutri-rec-input-wrap:focus-within {
+      border-color: #8fb02e;
+      box-shadow: 0 0 0 3px rgba(143,176,46,0.22);
+    }
+    .nutri-rec-input-wrap input {
+      width: 100%;
+      box-sizing: border-box;
+      border: none;
+      background: transparent;
+      outline: none;
+      padding: 13px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14.5px;
+      color: #2b2a1f;
+    }
+    .nutri-rec-submit {
+      width: 100%;
+      margin-top: 10px;
+      padding: 15px 18px;
+      border: none;
+      border-radius: 999px;
+      background: #76b82a;
+      color: #12140a;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .nutri-rec-submit:hover { filter: brightness(1.06); }
+    .nutri-rec-helper {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 13px;
+      color: #f5f2ea;
+      font-weight: 600;
+    }
+    .nutri-rec-helper a { color: #87ab52; font-weight: 700; text-decoration: none; }
+    .nutri-rec-helper a:hover { text-decoration: underline; }
+    .nutri-rec-msg {
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      margin-bottom: 18px;
+      display: none;
+      text-align: left;
+    }
+    .nutri-rec-msg--erro { background: #3a1414; border: 1px solid #7a2b2b; color: #f5c6c6; }
+    .nutri-rec-msg--ok { background: #16351a; border: 1px solid #2f6b3a; color: #c7f0c9; }
+  </style>
+</head>
+<body>
+
+<div class="nutri-rec-wrap">
+  <div class="nutri-rec-inner">
+    <h1 class="nutri-rec-title">Recuperar Senha</h1>
+    <p class="nutri-rec-sub">Informe seu email e enviaremos um link para redefinir sua senha.</p>
+
+    <div id="msg" class="nutri-rec-msg"></div>
+
+    <form id="formRecuperar">
+      <div class="nutri-rec-field-group">
+        <label for="email" class="nutri-rec-label">Email</label>
+        <div class="nutri-rec-input-wrap">
+          <input id="email" name="email" type="email" placeholder="exemplo@exemplo.com" required/>
+        </div>
+      </div>
+
+      <button type="submit" class="nutri-rec-submit">enviar link de recuperação</button>
+    </form>
+
+    <p class="nutri-rec-helper"><a th:href="@{/login}">voltar para o login</a></p>
+  </div>
+</div>
+
+<script type="module" th:inline="javascript">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getAuth, sendPasswordResetEmail
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: /*[[${firebaseWeb.apiKey}]]*/ "",
+    authDomain: /*[[${firebaseWeb.authDomain}]]*/ "",
+    projectId: /*[[${firebaseWeb.projectId}]]*/ "",
+    storageBucket: /*[[${firebaseWeb.storageBucket}]]*/ "",
+    messagingSenderId: /*[[${firebaseWeb.messagingSenderId}]]*/ "",
+    appId: /*[[${firebaseWeb.appId}]]*/ ""
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const msg = document.getElementById("msg");
+
+  function mostrarMsg(texto, tipo) {
+    msg.textContent = texto;
+    msg.className = "nutri-rec-msg " + (tipo === "ok" ? "nutri-rec-msg--ok" : "nutri-rec-msg--erro");
+    msg.style.display = "block";
+  }
+
+  document.getElementById("formRecuperar").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      mostrarMsg("Se este email estiver cadastrado, você receberá um link para redefinir sua senha em instantes.", "ok");
+    } catch (err) {
+      // Por segurança, não revelamos se o email existe ou não.
+      mostrarMsg("Se este email estiver cadastrado, você receberá um link para redefinir sua senha em instantes.", "ok");
+    }
+  });
+</script>
+
+</body>
+</html>

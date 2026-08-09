@@ -1,13 +1,18 @@
 package com.NexGen.nutriiftm.controller;
 
+import com.NexGen.nutriiftm.model.Usuario;
+import com.NexGen.nutriiftm.repository.UsuarioRepository;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 /**
  * Ponte entre o Firebase Authentication (que roda no navegador) e a sessão
@@ -22,11 +27,18 @@ import org.springframework.web.bind.annotation.*;
  *  4. Guardamos o uid/email na HttpSession. As demais páginas do sistema
  *     passam a confiar nessa sessão (via um interceptor/filtro),
  *     sem precisar validar token do Firebase de novo a cada clique.
+ *  5. Também espelhamos o usuário na tabela local `usuario` (criando na
+ *     primeira vez, atualizando o último login nas seguintes). O Firebase
+ *     continua sendo o dono da autenticação — isso aqui é só um cadastro
+ *     local para o resto do sistema poder referenciar "o usuário logado".
  */
 @Slf4j
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
+
+    private final UsuarioRepository usuarioRepository;
 
     @PostMapping("/sessao")
     public ResponseEntity<Void> criarSessao(
@@ -46,6 +58,8 @@ public class AuthController {
             session.setAttribute("email", decoded.getEmail());
             session.setAttribute("nome", decoded.getName());
 
+            sincronizarUsuarioLocal(decoded);
+
             log.info("Sessão criada para usuário {}", decoded.getEmail());
             return ResponseEntity.ok().build();
 
@@ -55,12 +69,34 @@ public class AuthController {
         }
     }
 
+    /**
+     * Cria o registro local na primeira vez que o uid aparece, ou apenas
+     * atualiza nome/email/último login se o usuário já existir.
+     */
+    private void sincronizarUsuarioLocal(FirebaseToken decoded) {
+        LocalDateTime agora = LocalDateTime.now();
+
+        Usuario usuario = usuarioRepository.findByFirebaseUid(decoded.getUid())
+                .orElseGet(() -> {
+                    Usuario novo = new Usuario();
+                    novo.setFirebaseUid(decoded.getUid());
+                    novo.setCriadoEm(agora);
+                    return novo;
+                });
+
+        usuario.setEmail(decoded.getEmail());
+        usuario.setNome(decoded.getName());
+        usuario.setUltimoLogin(agora);
+
+        usuarioRepository.save(usuario);
+    }
+
     @PostMapping("/logout")
-    public String logout(HttpServletRequest request) {
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
-        return "redirect:/login";
+        return ResponseEntity.ok().build();
     }
 }

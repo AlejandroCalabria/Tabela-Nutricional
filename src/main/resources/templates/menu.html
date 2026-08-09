@@ -291,7 +291,7 @@
           Configurações
         </a>
         <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item-logout">
+        <a href="#" id="logoutBtn" class="dropdown-item-logout">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -328,6 +328,16 @@
       if (!e.target.closest('#manageWrap') && !e.target.closest('#userWrap')) {
         document.querySelectorAll('.nutri-nav .dropdown-menu').forEach(m => m.classList.remove('open'));
         document.querySelectorAll('.nutri-nav .manage-btn').forEach(b => b.classList.remove('open'));
+      }
+    });
+
+    // Logout: encerra a sessão no servidor e manda de volta pro login
+    document.getElementById('logoutBtn').addEventListener('click', async function(e) {
+      e.preventDefault();
+      try {
+        await fetch('/auth/logout', { method: 'POST' });
+      } finally {
+        window.location.href = '/login';
       }
     });
   </script>
