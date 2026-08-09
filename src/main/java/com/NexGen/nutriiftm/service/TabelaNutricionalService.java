@@ -35,6 +35,11 @@ public class TabelaNutricionalService {
         return repo.findAllComElementos();
     }
 
+    /** Rótulos criados por um usuário específico ("Meus Rótulos"). */
+    public List<TabelaNutricional> listarPorUsuario(Long usuCodigo) {
+        return repo.findByUsuarioComElementos(usuCodigo);
+    }
+
     public TabelaNutricional buscarPorId(Long id) {
         return repo.findByIdComElementos(id).orElseThrow();
     }

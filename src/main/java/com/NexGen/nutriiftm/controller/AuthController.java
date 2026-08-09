@@ -86,6 +86,7 @@ public class AuthController {
 
         usuario.setEmail(decoded.getEmail());
         usuario.setNome(decoded.getName());
+        usuario.setFotoUrl(decoded.getPicture());
         usuario.setUltimoLogin(agora);
 
         usuarioRepository.save(usuario);

@@ -44,6 +44,9 @@ public class Usuario {
     @Column(name = "usu_nome", length = 255)
     private String nome;
 
+    @Column(name = "usu_foto_url", length = 500)
+    private String fotoUrl;
+
     @Column(name = "usu_criado_em", nullable = false)
     private LocalDateTime criadoEm;
 

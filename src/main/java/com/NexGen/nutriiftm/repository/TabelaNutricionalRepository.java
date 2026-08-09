@@ -37,4 +37,17 @@ public interface TabelaNutricionalRepository extends JpaRepository<TabelaNutrici
            "WHERE t.produto.proCodigo = :produtoId " +
            "ORDER BY t.tabCodigo DESC")
     List<TabelaNutricional> findByProdutoComElementos(@Param("produtoId") Long produtoId);
+
+    /**
+     * Rótulos criados por um usuário específico — usado na página
+     * "Meus Rótulos" (/tabela), que só deve mostrar o que o usuário logado
+     * criou, não os de todo mundo.
+     */
+    @Query("SELECT DISTINCT t FROM TabelaNutricional t " +
+           "LEFT JOIN FETCH t.produto " +
+           "LEFT JOIN FETCH t.unidadeMedida " +
+           "LEFT JOIN FETCH t.tneElementos tne " +
+           "LEFT JOIN FETCH tne.elemento " +
+           "WHERE t.usuario.usuCodigo = :usuCodigo")
+    List<TabelaNutricional> findByUsuarioComElementos(@Param("usuCodigo") Long usuCodigo);
 }

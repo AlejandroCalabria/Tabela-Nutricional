@@ -25,6 +25,15 @@ public class TabelaNutricional {
     @JoinColumn(name = "undCodigo")
     private UnidadeMedida unidadeMedida;
 
+    /**
+     * Dono do rótulo — quem criou. Nullable porque rótulos legados (criados
+     * antes do login existir) não têm dono conhecido. Usado para restringir
+     * edição/remoção e para listar "meus rótulos".
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usu_codigo")
+    private Usuario usuario;
+
     @Column(name = "tabValorEnergetico")
     private Double tabValorEnergetico;
 

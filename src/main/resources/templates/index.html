@@ -29,9 +29,85 @@
         <a th:href="@{/}" href="/">Início</a>
         <a th:href="@{#modulos}" href="#modulos">Módulos</a>
         <a th:href="@{#historia}" href="#historia">História</a>
-        <a th:href="@{/login}" href="/login" class="nav-btn">Entrar</a>
+
+        <!-- DESLOGADO -->
+        <a th:if="${usuarioLogado == null}"
+           th:href="@{/login}" href="/login" class="nav-btn">Entrar</a>
+
+        <!-- LOGADO: avatar + dropdown -->
+        <div th:if="${usuarioLogado != null}" class="idx-user-wrap" id="idxUserWrap">
+          <button class="idx-avatar-btn" id="idxUserBtn" onclick="idxToggleUserMenu()">
+            <img th:src="${usuarioLogado.fotoUrl} ?: @{/images/avatar.png}"
+                 src="/images/avatar.png" alt="Foto do usuário"/>
+          </button>
+          <div class="idx-user-dropdown" id="idxUserMenu">
+            <div class="idx-user-header">
+              <div class="idx-user-nome" th:text="${usuarioLogado.nome} ?: ${usuarioLogado.email}">Nome</div>
+              <div class="idx-user-email" th:text="${usuarioLogado.email}">email@exemplo.com</div>
+            </div>
+            <div class="idx-user-divider"></div>
+            <a th:href="@{/tabela}" class="idx-user-item">Meus Rótulos</a>
+            <a href="#" class="idx-user-item">Perfil</a>
+            <a th:href="@{/recuperar-senha}" class="idx-user-item">Alterar senha</a>
+            <div class="idx-user-divider"></div>
+            <a href="#" id="idxLogoutBtn" class="idx-user-item idx-user-item-logout">Logout</a>
+          </div>
+        </div>
       </div>
     </nav>
+
+    <style>
+      .idx-user-wrap { position: relative; }
+      .idx-avatar-btn {
+        width: 38px; height: 38px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.6);
+        padding: 0; overflow: hidden; cursor: pointer;
+        background: #e8ede4; flex-shrink: 0;
+      }
+      .idx-avatar-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .idx-user-dropdown {
+        display: none;
+        position: absolute; top: calc(100% + 10px); right: 0;
+        min-width: 200px; background: #fff; border-radius: 14px;
+        padding: 8px; box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+        z-index: 1100; font-family: 'Inter', sans-serif;
+      }
+      .idx-user-dropdown.open { display: block; }
+      .idx-user-header { padding: 8px 10px 10px; }
+      .idx-user-nome { font-size: 14px; font-weight: 700; color: #1A1512; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .idx-user-email { font-size: 12px; color: #767676; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .idx-user-divider { height: 1px; background: rgba(0,0,0,0.08); margin: 6px 4px; }
+      .idx-user-item {
+        display: block; padding: 10px 10px; border-radius: 9px;
+        text-decoration: none; color: #1A1512; font-size: 14px; font-weight: 500;
+      }
+      .idx-user-item:hover { background: rgba(0,0,0,0.04); }
+      .idx-user-item-logout { color: #c0392b; font-weight: 600; background: rgba(192,57,43,0.08); }
+      .idx-user-item-logout:hover { background: rgba(192,57,43,0.16); }
+    </style>
+
+    <script>
+      function idxToggleUserMenu() {
+        document.getElementById('idxUserMenu').classList.toggle('open');
+      }
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('#idxUserWrap')) {
+          var m = document.getElementById('idxUserMenu');
+          if (m) m.classList.remove('open');
+        }
+      });
+      var idxLogoutBtn = document.getElementById('idxLogoutBtn');
+      if (idxLogoutBtn) {
+        idxLogoutBtn.addEventListener('click', async function (e) {
+          e.preventDefault();
+          try {
+            await fetch('/auth/logout', { method: 'POST' });
+          } finally {
+            window.location.href = '/';
+          }
+        });
+      }
+    </script>
 
     <div class="hero-body">
       <div class="hero-badge">
