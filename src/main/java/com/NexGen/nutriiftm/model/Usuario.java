@@ -52,4 +52,14 @@ public class Usuario {
 
     @Column(name = "usu_ultimo_login")
     private LocalDateTime ultimoLogin;
+
+    /**
+     * Papel de administrador. Somente usuários com admin = true conseguem
+     * criar sessão (login) — ver AuthController.criarSessao(). Contas novas
+     * (cadastro.html) nascem com admin = false e precisam ser promovidas
+     * manualmente no banco:
+     *   UPDATE usuario SET usu_admin = 1 WHERE usu_email = '...';
+     */
+    @Column(name = "usu_admin", nullable = false)
+    private boolean admin;
 }

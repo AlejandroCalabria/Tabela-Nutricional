@@ -304,6 +304,8 @@
       <a th:href="@{/calculadora}" class="nav-link">Calculadora Nutricional (TACO)</a>
       <a th:href="@{/ingredientes/consulta}" class="nav-link">Consultar Ingrediente</a>
       <a th:href="@{/tabela}" class="nav-link">Gerenciar Rótulos</a>
+      <a th:if="${usuarioLogado != null and usuarioLogado.admin}"
+         th:href="@{/admin/dashboard}" class="nav-link">Painel Admin</a>
 
     </div>
 
@@ -321,6 +323,14 @@
           <div class="dropdown-user-email" th:text="${usuarioLogado.email}">email@exemplo.com</div>
         </div>
         <div class="dropdown-divider"></div>
+
+        <a th:if="${usuarioLogado.admin}" th:href="@{/admin/dashboard}" class="dropdown-item-user">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          Painel Admin
+        </a>
 
         <a th:href="@{/tabela}" class="dropdown-item-user">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none"

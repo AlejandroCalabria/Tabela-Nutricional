@@ -32,7 +32,17 @@ public class WebConfig implements WebMvcConfigurer {
                         "/css/**",
                         "/js/**",
                         "/images/**",
-                        "/webjars/**"
+                        "/webjars/**",
+
+                        // Visualizar rótulo é uma funcionalidade pública — não exige
+                        // login. Pensado para links diretos/QR code em embalagens de
+                        // produtos, para que o consumidor final consiga ver a
+                        // informação nutricional sem precisar de conta no sistema.
+                        // Continua existindo apenas para rótulos já cadastrados por
+                        // um administrador; cadastro/edição/remoção seguem protegidos.
+                        "/tabela/visualizar/**",
+                        "/tabela/imprimir/**",
+                        "/tabela/gerar-pdf/**"
                 );
     }
 }

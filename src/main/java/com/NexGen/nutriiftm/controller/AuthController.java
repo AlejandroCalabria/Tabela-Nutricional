@@ -53,14 +53,23 @@ public class AuthController {
         try {
             FirebaseToken decoded = FirebaseAuth.getInstance().verifyIdToken(token);
 
+            Usuario usuario = sincronizarUsuarioLocal(decoded);
+
+            // Somente administradores conseguem criar sessão. O restante do
+            // sistema (fora das rotas públicas de visualização de rótulo)
+            // é uma área administrativa protegida por login.
+            if (!usuario.isAdmin()) {
+                log.warn("Login negado (conta sem permissão de administrador): {}", decoded.getEmail());
+                return ResponseEntity.status(403).build();
+            }
+
             HttpSession session = request.getSession(true); // cria se não existir
             session.setAttribute("uid", decoded.getUid());
             session.setAttribute("email", decoded.getEmail());
             session.setAttribute("nome", decoded.getName());
+            session.setAttribute("admin", true);
 
-            sincronizarUsuarioLocal(decoded);
-
-            log.info("Sessão criada para usuário {}", decoded.getEmail());
+            log.info("Sessão criada para administrador {}", decoded.getEmail());
             return ResponseEntity.ok().build();
 
         } catch (FirebaseAuthException e) {
@@ -71,9 +80,11 @@ public class AuthController {
 
     /**
      * Cria o registro local na primeira vez que o uid aparece, ou apenas
-     * atualiza nome/email/último login se o usuário já existir.
+     * atualiza nome/email/último login se o usuário já existir. Contas
+     * novas nascem com admin = false (ver Usuario.admin) e precisam ser
+     * promovidas manualmente no banco para conseguir logar.
      */
-    private void sincronizarUsuarioLocal(FirebaseToken decoded) {
+    private Usuario sincronizarUsuarioLocal(FirebaseToken decoded) {
         LocalDateTime agora = LocalDateTime.now();
 
         Usuario usuario = usuarioRepository.findByFirebaseUid(decoded.getUid())
@@ -81,6 +92,7 @@ public class AuthController {
                     Usuario novo = new Usuario();
                     novo.setFirebaseUid(decoded.getUid());
                     novo.setCriadoEm(agora);
+                    novo.setAdmin(false);
                     return novo;
                 });
 
@@ -89,7 +101,7 @@ public class AuthController {
         usuario.setFotoUrl(decoded.getPicture());
         usuario.setUltimoLogin(agora);
 
-        usuarioRepository.save(usuario);
+        return usuarioRepository.save(usuario);
     }
 
     @PostMapping("/logout")

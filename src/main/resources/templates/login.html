@@ -408,8 +408,13 @@
         method: "POST",
         headers: { "Authorization": "Bearer " + token }
       });
-      if (resp.ok) window.location.href = "/";
-      else alert("Falha ao autenticar no servidor.");
+      if (resp.ok) {
+        window.location.href = "/admin/dashboard";
+      } else if (resp.status === 403) {
+        alert("Esta conta não tem permissão de administrador. Peça a um administrador para liberar seu acesso.");
+      } else {
+        alert("Falha ao autenticar no servidor.");
+      }
     }
   </script>
 </section>
