@@ -27,6 +27,8 @@
                 <div class="box_text">
                     <h3 style="color:#A0522D;">Gerenciamento de Produtores</h3>
 
+                    <div th:if="${erro}" class="alert alert-danger" role="alert" th:text="${erro}"></div>
+
                     <br><br><br><br>
 
                     <div class="row">
@@ -37,8 +39,9 @@
                                     <tr>
                                         <th width="5%">Códigos</th>
                                         <th width="20%">Produtores</th>
-                                        <th width="50%">Endereço</th>
-                                        <th width="25%">Cooperativa</th>
+                                        <th width="40%">Endereço</th>
+                                        <th width="20%">Cooperativa</th>
+                                        <th width="15%">Ações</th>
                                     </tr>
                                     </thead>
 
@@ -48,10 +51,20 @@
                                         <td th:text="${c.cooNome}"></td>
                                         <td th:text="${c.cooEndereco}"></td>
                                         <td th:text="${c.cooCidade}"></td>
+                                        <td>
+                                            <a th:href="@{/cooperativas/alterar/{id}(id=${c.cooCodigo})}"
+                                               class="btn btn-warning btn-sm">Alterar</a>
+                                            <a th:href="@{/cooperativas/deletar/{id}(id=${c.cooCodigo})}"
+                                               class="btn btn-danger btn-sm"
+                                               onclick="return confirm('Remover esta cooperativa? Isso também remove os fabricantes vinculados a ela.');">Remover</a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${cooperativas == null or #lists.isEmpty(cooperativas)}">
+                                        <td colspan="5">Nenhuma cooperativa cadastrada ainda.</td>
                                     </tr>
 
                                     <tr>
-                                        <td colspan="4">
+                                        <td colspan="5">
                                             <a th:href="@{/produtores/inserir}">Inserir novo produtor</a> |
                                             <a th:href="@{/produtores}">Alterar dados dos produtores</a> |
                                             <a th:href="@{/produtores}">Remover produtores cadastrados</a>
@@ -78,7 +91,7 @@
                                     <tbody>
                                     <tr>
                                         <td>
-                                            <a th:href="@{/cooperativas}">Gerenciar Cooperativas</a>
+                                            <a th:href="@{/cooperativas/inserir}">Cadastrar nova cooperativa</a>
                                         </td>
                                     </tr>
                                     </tbody>

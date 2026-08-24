@@ -1,8 +1,10 @@
 package com.NexGen.nutriiftm.controller;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.NexGen.nutriiftm.model.Cooperativa;
 import com.NexGen.nutriiftm.service.CooperativaService;
@@ -52,8 +54,18 @@ public class CooperativaController {
     }
 
     @GetMapping("/deletar/{id}")
-    public String deletar(@PathVariable Long id) {
-        service.deletar(id);
+    public String deletar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            service.deletar(id);
+        } catch (DataIntegrityViolationException e) {
+            // A cooperativa tem fabricantes (e/ou os fabricantes têm produtos)
+            // vinculados a ela — o banco recusa a remoção por causa da FK.
+            // Em vez de estourar erro 500, avisamos o usuário de forma clara.
+            redirectAttributes.addFlashAttribute("erro",
+                    "Não foi possível remover esta cooperativa: ela possui produtores e/ou "
+                    + "produtos cadastrados vinculados a ela. Remova ou transfira esses "
+                    + "cadastros antes de excluir a cooperativa.");
+        }
         return "redirect:/cooperativas";
     }
 }

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Remover Unidade de Medida - Nutri IFTM</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/responsive.css}">
+</head>
+<body class="main-layout">
+
+<div th:replace="~{menu :: menu}"></div>
+
+<div class="container mt-5">
+
+    <h1>Remover Unidade de Medida</h1>
+
+    <p>Tem certeza que deseja remover a unidade de medida abaixo?</p>
+
+    <ul class="list-group mb-4" style="max-width: 400px;">
+        <li class="list-group-item">
+            <strong>Código:</strong> <span th:text="${unidade.undCodigo}"></span>
+        </li>
+        <li class="list-group-item">
+            <strong>Nome:</strong> <span th:text="${unidade.undNome}"></span>
+        </li>
+    </ul>
+
+    <form th:action="@{/unidades/remover/{id}(id=${unidade.undCodigo})}" method="post">
+        <button type="submit" class="btn btn-danger">Confirmar Remoção</button>
+        <a th:href="@{/unidades}" class="btn btn-secondary ms-2">Cancelar</a>
+    </form>
+</div>
+
+<footer><div th:replace="~{rodape :: rodape}"></div></footer>
+
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

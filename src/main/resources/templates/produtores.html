@@ -16,6 +16,8 @@
 
     <h1>Produtores Cadastrados</h1>
 
+    <div th:if="${erro}" class="alert alert-danger" role="alert" th:text="${erro}"></div>
+
     <table class="table">
 
         <thead>

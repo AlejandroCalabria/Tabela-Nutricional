@@ -228,7 +228,12 @@
 
 <script th:src="@{/js/jquery.min.js}"></script>
 <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<!-- Vendorizado localmente (era carregado via CDN cdnjs.cloudflare.com — se
+     esse domínio estiver bloqueado/indisponível no ambiente de deploy, o
+     script falhava silenciosamente e derrubava TODOS os gráficos, já que
+     um ReferenceError no primeiro new Chart(...) interrompe o restante do
+     bloco <script>. Ver src/main/resources/static/js/chart.umd.js. -->
+<script th:src="@{/js/chart.umd.js}"></script>
 
 <script th:inline="javascript">
     $(window).on('load', function () { $('.loader_bg').fadeOut('slow'); });
@@ -243,39 +248,55 @@
     const paleta = ['#2d5e1a', '#76b82a', '#8fb02e', '#3D7A22', '#a3c95c', '#5a8a2f', '#c4dd8f', '#4a7a26'];
 
     function montarBarra(canvasId, emptyId, dadosJson, corIndex) {
-        let dados;
+        // Cada gráfico é isolado num try/catch — assim, se um falhar
+        // (dado inesperado, Chart.js indisponível, etc.), os outros
+        // gráficos e o filtro da tabela (mais abaixo) continuam funcionando.
         try {
-            dados = typeof dadosJson === 'string' ? JSON.parse(dadosJson) : dadosJson;
-        } catch (e) {
-            dados = [];
-        }
-
-        const canvas = document.getElementById(canvasId);
-        if (!dados || dados.length === 0) {
-            canvas.style.display = 'none';
-            document.getElementById(emptyId).style.display = 'block';
-            return;
-        }
-
-        new Chart(canvas.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: dados.map(d => d.label),
-                datasets: [{
-                    data: dados.map(d => d.valor),
-                    backgroundColor: dados.map((_, i) => paleta[(i + corIndex) % paleta.length]),
-                    borderRadius: 6,
-                    maxBarThickness: 46
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 } }
-                }
+            let dados;
+            try {
+                dados = typeof dadosJson === 'string' ? JSON.parse(dadosJson) : dadosJson;
+            } catch (e) {
+                dados = [];
             }
-        });
+
+            const canvas = document.getElementById(canvasId);
+            const emptyEl = document.getElementById(emptyId);
+
+            if (typeof Chart === 'undefined') {
+                canvas.style.display = 'none';
+                emptyEl.textContent = 'Não foi possível carregar a biblioteca de gráficos.';
+                emptyEl.style.display = 'block';
+                return;
+            }
+
+            if (!dados || dados.length === 0) {
+                canvas.style.display = 'none';
+                emptyEl.style.display = 'block';
+                return;
+            }
+
+            new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: dados.map(d => d.label),
+                    datasets: [{
+                        data: dados.map(d => d.valor),
+                        backgroundColor: dados.map((_, i) => paleta[(i + corIndex) % paleta.length]),
+                        borderRadius: 6,
+                        maxBarThickness: 46
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Falha ao montar gráfico ' + canvasId, e);
+        }
     }
 
     montarBarra('chartProdutosFabricante', 'emptyProdutosFabricante', produtosPorFabricante, 0);
