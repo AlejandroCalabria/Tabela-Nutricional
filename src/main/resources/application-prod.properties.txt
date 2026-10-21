@@ -1,0 +1,18 @@
+# Perfil de PRODUCAO
+# Ativar com: SPRING_PROFILES_ACTIVE=prod (variavel de ambiente no servidor)
+#
+# Credenciais e demais segredos NAO ficam aqui - vem de variaveis de ambiente
+# (ver application.properties: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD)
+
+spring.jpa.show-sql=false
+spring.jpa.hibernate.ddl-auto=validate
+
+# Nao expor detalhes de erro/stacktrace para o cliente
+server.error.include-stacktrace=never
+server.error.include-message=never
+server.error.include-exception=false
+server.error.include-binding-errors=never
+
+logging.level.root=WARN
+logging.level.com.NexGen.nutriiftm=INFO
+logging.level.org.hibernate.SQL=WARN

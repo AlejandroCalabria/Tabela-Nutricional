@@ -1,0 +1,12 @@
+# Perfil de DESENVOLVIMENTO LOCAL
+# Ativado por padrao (spring.profiles.active=dev em application.properties)
+
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# Em dev e' aceitavel deixar o Hibernate ajustar o schema automaticamente.
+# Isso SOBRESCREVE o ddl-auto=validate do application.properties, valendo so' em dev.
+spring.jpa.hibernate.ddl-auto=update
+
+logging.level.com.NexGen.nutriiftm=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
