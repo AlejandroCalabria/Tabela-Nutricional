@@ -1,6 +1,7 @@
 package com.NexGen.nutriiftm.controller;
 
 import com.NexGen.nutriiftm.model.TabelaNutricional;
+import com.NexGen.nutriiftm.repository.UsuarioRepository;
 import com.NexGen.nutriiftm.service.ElementoService;
 import com.NexGen.nutriiftm.service.ProdutoService;
 import com.NexGen.nutriiftm.service.TabelaNutricionalService;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/tabela")
@@ -26,6 +29,7 @@ public class TabelaNutricionalController {
     private final ProdutoService produtoService;
     private final ElementoService elementoService;
     private final UnidadeMedidaService unidadeService;
+    private final UsuarioRepository usuarioRepository;
 
     // =========================
     // LISTAR
@@ -96,7 +100,9 @@ public class TabelaNutricionalController {
             Double tabTotalColheres,
 
             @RequestParam(required = false)
-            Double tabVD
+            Double tabVD,
+
+            HttpServletRequest request
     ) {
         boolean isInsert = (tabCodigo == null);
 
@@ -112,6 +118,13 @@ public class TabelaNutricionalController {
         t.setTabTotalPorcao(tabTotalPorcao != null ? tabTotalPorcao : 0.0);
         t.setTabTotalColheres(tabTotalColheres != null ? tabTotalColheres : 0.0);
         t.setTabVD(tabVD != null ? tabVD : 0.0);
+
+        if (isInsert) {
+            HttpSession session = request.getSession(false);
+            if (session != null && session.getAttribute("uid") instanceof String uid) {
+                usuarioRepository.findByFirebaseUid(uid).ifPresent(t::setUsuario);
+            }
+        }
 
         TabelaNutricional salva = tabelaService.salvar(t);
 

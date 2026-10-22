@@ -9,12 +9,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.io.IOException;
 
 /**
- * Bloqueia o acesso às páginas do sistema quando não existe uma sessão
- * válida (criada em AuthController após verificar o token do Firebase).
+ * Exige uma sessão válida nas rotas protegidas e mantém o painel
+ * administrativo exclusivo para administradores.
  *
  * Não confunda com autenticação em si — este interceptor NÃO valida
- * nada do Firebase, apenas confere se já existe uma sessão marcada como
- * logada. A validação do token acontece uma única vez, em
+ * nada do Firebase, apenas confere a sessão marcada como logada e o papel
+ * de administrador nas rotas /admin/**. A validação do token acontece em
  * POST /auth/sessao.
  */
 @Component
@@ -28,6 +28,12 @@ public class AuthInterceptor implements HandlerInterceptor {
         boolean logado = session != null && session.getAttribute("uid") != null;
 
         if (logado) {
+            if (request.getRequestURI().equals("/admin")
+                    || request.getRequestURI().startsWith("/admin/")
+                    && !Boolean.TRUE.equals(session.getAttribute("admin"))) {
+                response.sendRedirect("/perfil");
+                return false;
+            }
             return true;
         }
 
